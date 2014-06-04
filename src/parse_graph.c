@@ -14,6 +14,7 @@ typedef struct graph_data {
   igraph_vector_t *edges;
 } graph_data;
 
+
 int lookup_node_id(graph_data *gdata, raptor_term *node) {
   if(node->type == RAPTOR_TERM_TYPE_URI) {    
     size_t len = 0;
@@ -29,21 +30,55 @@ int lookup_node_id(graph_data *gdata, raptor_term *node) {
 }
 
 
+int update_trie(rgraph *graph, raptor_term* node) {
+  if(node->type == RAPTOR_TERM_TYPE_URI) {    
+    size_t len = 0;
+    unsigned char* uri = raptor_uri_as_counted_string(node->value.uri , &len);
+
+    int* data = art_search(graph->uris, uri, len);
+
+    if(!data) {
+      data = malloc(sizeof(int));
+      *data = graph->num_vertices++;
+      art_insert(graph->uris, uri, len, data);
+    }
+
+    return *data;
+  } else {
+    return -1;
+  }
+}
+
+void update_graph(graph_data *data) {
+  // commit batch of edges to graph
+  if(igraph_vector_size(data->edges) >= BUFSIZE) {
+    // check if we need to enlarge the graph
+    if(igraph_vcount(data->graph->graph) < data->graph->num_vertices) {
+      igraph_add_vertices(data->graph->graph, data->graph->num_vertices - igraph_vcount(data->graph->graph), 0);
+    }
+
+    // add edges to graph
+    igraph_add_edges(data->graph->graph, data->edges, 0);
+    igraph_vector_clear(data->edges);
+  }
+}
+
+/**
+ * Statement handler. Adds subject, predicate and object to the URI->id trie in case they are URIs
+ * and updates edges vector. In case the edges vector reaches BUFSIZE, the graph is also updated.
+ */
 void parse_edge_statement_handler(graph_data *data, const raptor_statement* statement) {
 
-  int from = lookup_node_id(data,statement->subject);
-  int to   = lookup_node_id(data,statement->object);
+  int from = update_trie(data->graph, statement->subject);
+  int attr = update_trie(data->graph, statement->predicate);
+  int to   = update_trie(data->graph, statement->object);
 
   if(from >= 0 && to >= 0) {
     igraph_vector_push_back (data->edges, from);
     igraph_vector_push_back (data->edges, to);
   }
 
-  // commit batch of edges to graph
-  if(igraph_vector_size(data->edges) >= BUFSIZE) {
-    igraph_add_edges(data->graph->graph, data->edges, 0);
-    igraph_vector_clear(data->edges);
-  }
+  update_graph(data);
 }
 
 
@@ -63,19 +98,11 @@ void parse_graph(rgraph *graph, FILE* rdffile, const char* format, const char* _
 
   graph_data data = {graph, &edges};
 
-  // make graph bigger if needed
-  if(igraph_vcount(graph->graph) < graph->num_vertices) {
-    igraph_add_vertices(graph->graph, graph->num_vertices - igraph_vcount(graph->graph), 0);
-  }
-
-
   raptor_parser_set_statement_handler(parser, &data, parse_edge_statement_handler);
   raptor_parser_parse_file_stream(parser, rdffile, NULL, base_uri);
 
-  
-
   // add all remaining edges to graph
-  igraph_add_edges(graph->graph, &edges, 0);
+  update_graph(&data);
 
   igraph_vector_destroy(&edges);
   raptor_free_uri(base_uri);
@@ -84,15 +111,3 @@ void parse_graph(rgraph *graph, FILE* rdffile, const char* format, const char* _
 }
 
 
-/**
- * Dump the trie structure into a dumpfile as CSV of the form id,uri
- */
-void dump_graph(rgraph *graph, FILE *dumpfile) {
-}
-
-
-/**
- * Restore the trie structure from a dumpfile as CSV of the form id,uri
- */
-void restore_graph(rgraph *graph, FILE *dumpfile) {
-}

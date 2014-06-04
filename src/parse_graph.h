@@ -11,16 +11,4 @@
 void parse_graph(rgraph *graph, FILE* rdffile, const char* format, const char* base_uri);
 
 
-/**
- * Dump the trie structure into a dumpfile as CSV of the form id,uri
- */
-void dump_graph(rgraph *graph, FILE *dumpfile);
-
-
-/**
- * Restore the trie structure from a dumpfile as CSV of the form id,uri
- */
-void restore_graph(rgraph *graph, FILE *dumpfile);
-
-
 #endif

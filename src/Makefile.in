@@ -92,8 +92,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_create_graph_OBJECTS = create_graph.$(OBJEXT) art.$(OBJEXT) \
-	parse_uri_nodes.$(OBJEXT) parse_graph.$(OBJEXT) \
-	relatedness.$(OBJEXT)
+	graphio.$(OBJEXT) parse_graph.$(OBJEXT) relatedness.$(OBJEXT)
 create_graph_OBJECTS = $(am_create_graph_OBJECTS)
 create_graph_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -275,7 +274,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-create_graph_SOURCES = create_graph.c art.c parse_uri_nodes.c parse_graph.c relatedness.c
+create_graph_SOURCES = create_graph.c art.c graphio.c parse_graph.c relatedness.c
 all: all-am
 
 .SUFFIXES:
@@ -372,8 +371,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/art.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/create_graph.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_graph.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_uri_nodes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relatedness.Po@am__quote@
 
 .c.o:

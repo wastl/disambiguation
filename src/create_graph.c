@@ -5,7 +5,7 @@
 
 #include "art.h"
 #include "relatedness.h"
-#include "parse_uri_nodes.h"
+#include "graphio.h"
 #include "parse_graph.h"
 
 
@@ -86,18 +86,12 @@ void main(int argc, char** argv) {
   // first restore existing dump in case -i is given
   if(mode & MODE_RESTORE) { 
     fin = fopen(ifile,"r");
-    restore_uri_nodes(&graph,fin);
+    restore_graph(&graph,fin);
     fclose(fin);
   }
 
   // add the new file(s) to the trie and graph
   for(; optind < argc; optind++) {
-    // pass 1: parse nodes
-    fin = fopen(argv[optind],"r");
-    parse_uri_nodes(&graph, fin, format, "http://localhost/");
-    fclose(fin);
-
-    // pass 2: parse edges
     fin = fopen(argv[optind],"r");
     parse_graph(&graph, fin, format, "http://localhost/");
     fclose(fin);
@@ -108,7 +102,7 @@ void main(int argc, char** argv) {
 
   if(mode & MODE_DUMP) { 
     fout = fopen(ofile,"w");
-    dump_uri_nodes(&graph,fout);
+    dump_graph(&graph,fout);
     fclose(fout);
   }
 
