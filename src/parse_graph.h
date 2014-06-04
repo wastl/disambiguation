@@ -3,6 +3,8 @@
 
 #include "relatedness.h"
 
+#define BUFSIZE 1000
+
 
 /**
  * Parse all URI nodes contained in rdffile and add them to the trie

@@ -6,13 +6,13 @@
 /**
  * Dump the trie structure into a dumpfile as CSV of the form id,uri
  */
-void dump_graph(rgraph *graph, FILE *dumpfile);
+void dump_graph(rgraph *graph, FILE *verticefile, FILE *graphfile);
 
 
 /**
  * Restore the trie structure from a dumpfile as CSV of the form id,uri
  */
-void restore_graph(rgraph *graph, FILE *dumpfile);
+void restore_graph(rgraph *graph, FILE *verticefile, FILE *graphfile);
 
 
 #endif

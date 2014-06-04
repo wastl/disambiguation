@@ -7,27 +7,12 @@
 #include "relatedness.h"
 #include "parse_graph.h"
 
-#define BUFSIZE 100
 
 typedef struct graph_data {
   rgraph *graph;
   igraph_vector_t *edges;
 } graph_data;
 
-
-int lookup_node_id(graph_data *gdata, raptor_term *node) {
-  if(node->type == RAPTOR_TERM_TYPE_URI) {    
-    size_t len = 0;
-    unsigned char* uri = raptor_uri_as_counted_string(node->value.uri , &len);
-
-    int* data = art_search(gdata->graph->uris, uri, len);
-    if(data) {
-      return *data;
-    }
-  }
-
-  return -1;
-}
 
 
 int update_trie(rgraph *graph, raptor_term* node) {
@@ -38,9 +23,18 @@ int update_trie(rgraph *graph, raptor_term* node) {
     int* data = art_search(graph->uris, uri, len);
 
     if(!data) {
+      // add new ID to trie
       data = malloc(sizeof(int));
       *data = graph->num_vertices++;
       art_insert(graph->uris, uri, len, data);
+
+      // add URI to vertices
+      if(*data % VINC == 0) {
+	graph->vertices = realloc(graph->vertices, (*data + VINC) * sizeof(char*));
+      }
+      graph->vertices[*data] = malloc( (len+1) * sizeof(char));
+      memcpy(graph->vertices[*data], uri, len);
+      graph->vertices[*data][len] = '\0';
     }
 
     return *data;
