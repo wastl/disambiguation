@@ -635,6 +635,7 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+rdflibs
 CPP
 OTOOL64
 OTOOL
@@ -11637,7 +11638,6 @@ fi
 done
 
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for igraph_tree in -ligraph" >&5
 $as_echo_n "checking for igraph_tree in -ligraph... " >&6; }
 if ${ac_cv_lib_igraph_igraph_tree+:} false; then :
@@ -11681,6 +11681,8 @@ _ACEOF
 
   LIBS="-ligraph $LIBS"
 
+else
+  as_fn_error $? "\"required igraph library is missing\"" "$LINENO" 5
 fi
 
 ac_fn_c_check_header_mongrel "$LINENO" "igraph/igraph.h" "ac_cv_header_igraph_igraph_h" "$ac_includes_default"
@@ -11727,18 +11729,16 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_raptor2_raptor_new_parser" >&5
 $as_echo "$ac_cv_lib_raptor2_raptor_new_parser" >&6; }
 if test "x$ac_cv_lib_raptor2_raptor_new_parser" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBRAPTOR2 1
-_ACEOF
-
-  LIBS="-lraptor2 $LIBS"
-
+  rdflibs="-lraptor2"
+else
+  as_fn_error $? "\"required raptor2 library is missing\"" "$LINENO" 5
 fi
 
 ac_fn_c_check_header_mongrel "$LINENO" "raptor2/raptor2.h" "ac_cv_header_raptor2_raptor2_h" "$ac_includes_default"
 if test "x$ac_cv_header_raptor2_raptor2_h" = xyes; then :
 
 fi
+
 
 
 
@@ -11785,6 +11785,8 @@ _ACEOF
 
   LIBS="-lm $LIBS"
 
+else
+  as_fn_error $? "\"required math library is missing\"" "$LINENO" 5
 fi
 
 ac_fn_c_check_header_mongrel "$LINENO" "math.h" "ac_cv_header_math_h" "$ac_includes_default"

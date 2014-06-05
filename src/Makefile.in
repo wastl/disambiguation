@@ -78,7 +78,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = create_graph$(EXEEXT)
+bin_PROGRAMS = create_graph$(EXEEXT) relatedness$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -95,11 +95,15 @@ am_create_graph_OBJECTS = create_graph.$(OBJEXT) art.$(OBJEXT) \
 	graphio.$(OBJEXT) parse_graph.$(OBJEXT) rgraph.$(OBJEXT) \
 	weights_combi.$(OBJEXT)
 create_graph_OBJECTS = $(am_create_graph_OBJECTS)
-create_graph_LDADD = $(LDADD)
+create_graph_DEPENDENCIES =
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_relatedness_OBJECTS = relatedness.$(OBJEXT) art.$(OBJEXT) \
+	graphio.$(OBJEXT) rgraph.$(OBJEXT)
+relatedness_OBJECTS = $(am_relatedness_OBJECTS)
+relatedness_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -134,8 +138,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(create_graph_SOURCES)
-DIST_SOURCES = $(create_graph_SOURCES)
+SOURCES = $(create_graph_SOURCES) $(relatedness_SOURCES)
+DIST_SOURCES = $(create_graph_SOURCES) $(relatedness_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -267,6 +271,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+rdflibs = @rdflibs@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -276,6 +281,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 create_graph_SOURCES = create_graph.c art.c graphio.c parse_graph.c rgraph.c weights_combi.c
+relatedness_SOURCES = relatedness.c art.c graphio.c rgraph.c
+create_graph_LDADD = @rdflibs@
 all: all-am
 
 .SUFFIXES:
@@ -364,6 +371,10 @@ create_graph$(EXEEXT): $(create_graph_OBJECTS) $(create_graph_DEPENDENCIES) $(EX
 	@rm -f create_graph$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(create_graph_OBJECTS) $(create_graph_LDADD) $(LIBS)
 
+relatedness$(EXEEXT): $(relatedness_OBJECTS) $(relatedness_DEPENDENCIES) $(EXTRA_relatedness_DEPENDENCIES) 
+	@rm -f relatedness$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(relatedness_OBJECTS) $(relatedness_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -374,6 +385,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/create_graph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_graph.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relatedness.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weights_combi.Po@am__quote@
 
@@ -609,7 +621,6 @@ uninstall-am: uninstall-binPROGRAMS
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS
 
-#disambiguation_LDADD = 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

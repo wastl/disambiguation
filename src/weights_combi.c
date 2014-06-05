@@ -76,7 +76,7 @@ void compute_weights_combi(rgraph *graph) {
   // third step: iterate again over all edges and assign combiIC
   // weight
   igraph_vector_resize(graph->weights, igraph_ecount(graph->graph));
-  igraph_vector_fill(graph->weights, DBL_MAX);
+  igraph_vector_fill(graph->weights, 1.0);
 
   igraph_eit_create(graph->graph, edge_s, &edge_it);
 
@@ -88,8 +88,10 @@ void compute_weights_combi(rgraph *graph) {
     pred = igraph_vector_e(graph->labels,eid);
 
     if(ic_pred[pred] < DBL_MAX && ic_obj[to] < DBL_MAX) {
-      igraph_vector_set(graph->weights, eid, ic_pred[pred] + ic_obj[to]);
+      igraph_vector_set(graph->weights, eid, 1.0 / (ic_pred[pred] + ic_obj[to]));
     }
+
+    //printf("edge weight %d: %.3f\n", eid, 1.0 / (ic_pred[pred] + ic_obj[to]));
 
     IGRAPH_EIT_NEXT(edge_it);
   }
