@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 #include "art.h"
-#include "relatedness.h"
+#include "rgraph.h"
 #include "graphio.h"
 #include "parse_graph.h"
 
@@ -45,16 +45,11 @@ void usage() {
 void main(int argc, char** argv) {
   int opt;
   int mode = 0;
-  char *ofile, *ifile, *tmp1, *tmp2;
+  char *ofile, *ifile;
   char *format = "rdfxml";
-  FILE *f1, *f2;
+  FILE *f1;
 
   rgraph graph;
-
-  // temporary strings for various tasks
-  tmp1  = malloc(256 * sizeof(char));
-  tmp2  = malloc(256 * sizeof(char));
-
 
   // read options from command line
   while( (opt = getopt(argc,argv,"pf:o:i:")) != -1) {
@@ -88,13 +83,7 @@ void main(int argc, char** argv) {
 
   // first restore existing dump in case -i is given
   if(mode & MODE_RESTORE) { 
-    snprintf(tmp1,256,"%s.v",ifile);
-    snprintf(tmp2,256,"%s.g",ifile);
-    f1 = fopen(tmp1,"r");
-    f2 = fopen(tmp2,"r");
-    restore_graph(&graph,f1,f2);
-    fclose(f1);
-    fclose(f2);
+    restore_graph(&graph,ifile);
   }
 
   // add the new file(s) to the trie and graph
@@ -108,18 +97,7 @@ void main(int argc, char** argv) {
 
 
   if(mode & MODE_DUMP) { 
-    snprintf(tmp1,256,"%s.v",ofile);
-    snprintf(tmp2,256,"%s.g",ofile);
-    
-
-    f1 = fopen(tmp1,"w");
-    f2 = fopen(tmp2,"w");
-
-    dump_graph(&graph,f1,f2);
-    fclose(f1);
-    fclose(f2);
-
-    printf("graph data dumped to %s and %s\n",tmp1,tmp2);
+    dump_graph(&graph,ofile);
   }
 
 		 
@@ -133,8 +111,5 @@ void main(int argc, char** argv) {
   }
 
   destroy_rgraph(&graph);
-
-  free(tmp1);
-  free(tmp2);
 
 }

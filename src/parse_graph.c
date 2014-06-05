@@ -4,17 +4,22 @@
 #include <raptor2/raptor2.h>
 
 #include "art.h"
-#include "relatedness.h"
+#include "rgraph.h"
 #include "parse_graph.h"
 
 
 typedef struct graph_data {
   rgraph *graph;
   igraph_vector_t *edges;
+  igraph_vector_t *labels;
 } graph_data;
 
 
 
+/**
+ * Add a node to the URI->vertice trie in case it is an URI node and does not exist yet.
+ * Returns the vertice id of the node, or -1 in case the node is not a URI.
+ */
 int update_trie(rgraph *graph, raptor_term* node) {
   if(node->type == RAPTOR_TERM_TYPE_URI) {    
     size_t len = 0;
@@ -43,9 +48,15 @@ int update_trie(rgraph *graph, raptor_term* node) {
   }
 }
 
+/**
+ * Check if the batch is full and updating the graph structure is required. Enlarge graph with
+ * new vertices and edges if necessary.
+ */
 void update_graph(graph_data *data) {
   // commit batch of edges to graph
   if(igraph_vector_size(data->edges) >= BUFSIZE) {
+    int i;
+
     // check if we need to enlarge the graph
     if(igraph_vcount(data->graph->graph) < data->graph->num_vertices) {
       igraph_add_vertices(data->graph->graph, data->graph->num_vertices - igraph_vcount(data->graph->graph), 0);
@@ -53,7 +64,19 @@ void update_graph(graph_data *data) {
 
     // add edges to graph
     igraph_add_edges(data->graph->graph, data->edges, 0);
+
+    // for the last edges, add the proper label
+    int edgecount  = igraph_ecount(data->graph->graph);
+    int labelcount = igraph_vector_size(data->labels);
+    int label;
+    for(i = edgecount - labelcount; i <  edgecount; i++) {
+      label = igraph_vector_e(data->labels, i - edgecount + labelcount);
+      igraph_cattribute_EAN_set(data->graph->graph, ATTR_LABEL, i, label);
+      igraph_cattribute_EAN_set(data->graph->graph, ATTR_WEIGHT, i, 0.0);
+    }
+
     igraph_vector_clear(data->edges);
+    igraph_vector_clear(data->labels);
   }
 }
 
@@ -63,13 +86,14 @@ void update_graph(graph_data *data) {
  */
 void parse_edge_statement_handler(graph_data *data, const raptor_statement* statement) {
 
-  int from = update_trie(data->graph, statement->subject);
-  int attr = update_trie(data->graph, statement->predicate);
-  int to   = update_trie(data->graph, statement->object);
+  int from  = update_trie(data->graph, statement->subject);
+  int label = update_trie(data->graph, statement->predicate);
+  int to    = update_trie(data->graph, statement->object);
 
   if(from >= 0 && to >= 0) {
     igraph_vector_push_back (data->edges, from);
     igraph_vector_push_back (data->edges, to);
+    igraph_vector_push_back (data->labels, label);
   }
 
   update_graph(data);
@@ -90,7 +114,11 @@ void parse_graph(rgraph *graph, FILE* rdffile, const char* format, const char* _
   igraph_vector_t edges;
   igraph_vector_init(&edges,BUFSIZE);
 
-  graph_data data = {graph, &edges};
+  // collect edge labels in this vector
+  igraph_vector_t labels;
+  igraph_vector_init(&labels,BUFSIZE / 2);
+
+  graph_data data = {graph, &edges, &labels};
 
   raptor_parser_set_statement_handler(parser, &data, parse_edge_statement_handler);
   raptor_parser_parse_file_stream(parser, rdffile, NULL, base_uri);
@@ -99,6 +127,7 @@ void parse_graph(rgraph *graph, FILE* rdffile, const char* format, const char* _
   update_graph(&data);
 
   igraph_vector_destroy(&edges);
+  igraph_vector_destroy(&labels);
   raptor_free_uri(base_uri);
   raptor_free_parser(parser);
   raptor_free_world(world);

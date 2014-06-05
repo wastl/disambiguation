@@ -1,11 +1,14 @@
-#ifndef HAVE_RELATEDNESS_H
-#define HAVE_RELATEDNESS_H 1
+#ifndef HAVE_RGRAPH_H
+#define HAVE_RGRAPH_H 1
 
 #include <string.h>
 #include <igraph/igraph.h>
 #include "art.h"
+#include "config.h"
 
-#define VINC 1000
+
+#define ATTR_LABEL "l"
+#define ATTR_WEIGHT "w"
 
 typedef struct rgraph {
   art_tree *uris;   /* map from URIs to vertice IDs */

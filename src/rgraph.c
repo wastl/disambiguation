@@ -1,15 +1,18 @@
-#include "relatedness.h"
+#include "rgraph.h"
 
 /**
  * Initialise an empty relatedness graph, ready for being updated.
  */
 void init_rgraph(rgraph *graph) {
+  /* turn on attribute handling */
+  igraph_i_set_attribute_table(&igraph_cattribute_table);
+
   graph->uris  = malloc(sizeof(art_tree));
   graph->graph = malloc(sizeof(igraph_t));
   graph->vertices = malloc(VINC * sizeof(char*));
 
     // init empty graph
-  igraph_empty(graph->graph,0,IGRAPH_DIRECTED);
+  igraph_empty(graph->graph,0,IGRAPH_UNDIRECTED);
 
   // init empty trie for URI->vertice mapping
   init_art_tree(graph->uris);

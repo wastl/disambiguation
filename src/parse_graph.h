@@ -1,9 +1,9 @@
 #ifndef HAVE_PARSE_GRAPH_H
 #define HAVE_PARSE_GRAPH_H 1
 
-#include "relatedness.h"
+#include "rgraph.h"
+#include "config.h"
 
-#define BUFSIZE 1000
 
 
 /**
