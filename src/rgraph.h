@@ -11,10 +11,12 @@
 #define ATTR_WEIGHT "w"
 
 typedef struct rgraph {
-  art_tree *uris;   /* map from URIs to vertice IDs */
-  char **vertices;  /* map from vertice IDs to URIs */
-  igraph_t *graph;  /* IGraph representing the triples */
-  int num_vertices; /* number of vertices in trie and graph */
+  art_tree        *uris;        /* map from URIs to vertice IDs */
+  char            **vertices;   /* map from vertice IDs to URIs */
+  igraph_t        *graph;       /* IGraph representing the triples */
+  int             num_vertices; /* number of vertices in trie and graph */
+  igraph_vector_t *labels;      /* vector containing edge labels (property node IDs) */
+  igraph_vector_t *weights;     /* vector containing edge weights */
 } rgraph;
 
 

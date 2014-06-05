@@ -16,4 +16,8 @@ AC_CHECK_HEADER(igraph/igraph.h)
 AC_CHECK_LIB(raptor2,raptor_new_parser)
 AC_CHECK_HEADER(raptor2/raptor2.h)
 
+AC_CHECK_LIB(m,log)
+AC_CHECK_HEADER(math.h)
+
+
 AC_OUTPUT([Makefile src/Makefile])

@@ -68,7 +68,8 @@ void dump_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE* l
 
   printf("- dumping label data ...\n");
   for(i=0; i<igraph_ecount(graph->graph); i++) {
-    v = igraph_cattribute_EAN(graph->graph, ATTR_LABEL, i);
+    v = igraph_vector_e(graph->labels, i);
+    //v = igraph_cattribute_EAN(graph->graph, ATTR_LABEL, i);
     fwrite(&v, sizeof(int), 1, labelfile);
     //fprintf(labelfile,"%d\n",v);
   }
@@ -76,7 +77,8 @@ void dump_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE* l
 
   printf("- dumping weight data ...\n");
   for(i=0; i<igraph_ecount(graph->graph); i++) {
-    w = igraph_cattribute_EAN(graph->graph, ATTR_WEIGHT, i);
+    w = igraph_vector_e(graph->weights, i);
+    //w = igraph_cattribute_EAN(graph->graph, ATTR_WEIGHT, i);
     fwrite(&w, sizeof(double), 1, weightsfile);
   }
   fflush(weightsfile);
@@ -176,7 +178,7 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
   if(graphfile) {
     printf("- restoring edge data ... ");
     fflush(stdout);
-    igraph_read_graph_edgelist(graph->graph, graphfile, 0, IGRAPH_UNDIRECTED);
+    igraph_read_graph_edgelist(graph->graph, graphfile, 0, GRAPH_MODE);
     printf("%d edges!\n",igraph_ecount(graph->graph));
   } else {
     printf("- not restoring edge data, file does not exist!\n");
@@ -185,12 +187,11 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
   if(labelfile) {
     printf("- restoring label data ... ");
     fflush(stdout);
-    i = 0;
+
     while( fread(id, sizeof(int), 1, labelfile) > 0) {
-      igraph_cattribute_EAN_set(graph->graph, ATTR_LABEL, i, *id);
-      i++;
+      igraph_vector_push_back(graph->labels,*id);
     }
-    printf("%d labels!\n",i);
+    printf("%d labels!\n",igraph_vector_size(graph->labels));
   } else {
     printf("- not restoring label data, file does not exist!\n");
   }
@@ -198,12 +199,11 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
   if(weightsfile) {
     printf("- restoring weight data ... ");
     fflush(stdout);
-    i = 0;
+
     while( fread(&d, sizeof(double), 1, weightsfile) > 0) {
-      igraph_cattribute_EAN_set(graph->graph, ATTR_WEIGHT, i, d);
-      i++;
+      igraph_vector_push_back(graph->weights,d);
     }
-    printf("%d weights!\n",i);
+    printf("%d weights!\n",igraph_vector_size(graph->weights));
   } else {
     printf("- not restoring weight data, file does not exist!\n");
   }

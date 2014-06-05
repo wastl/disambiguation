@@ -2,16 +2,18 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "art.h"
 #include "rgraph.h"
 #include "graphio.h"
 #include "parse_graph.h"
-
+#include "weights_combi.h"
 
 #define MODE_PRINT   1
 #define MODE_DUMP    2
 #define MODE_RESTORE 4
+#define MODE_WEIGHTS 8
 
 
 /*
@@ -37,8 +39,7 @@ int print_uri(void *_data, const unsigned char *key, uint32_t key_len, void *val
 
 
 void usage() {
-  printf("Usage: create_graph [-f format] [-o dumpfile] [-p] rdffile\n");
-  printf("       create_graph -i dumpfile [-p]\n");
+  printf("Usage: create_graph [-f format] [-o dumpfile] [-i restorefile] [-p] [-w] rdffile\n");
 }
 
 
@@ -48,11 +49,12 @@ void main(int argc, char** argv) {
   char *ofile, *ifile;
   char *format = "rdfxml";
   FILE *f1;
+  clock_t start, end;
 
   rgraph graph;
 
   // read options from command line
-  while( (opt = getopt(argc,argv,"pf:o:i:")) != -1) {
+  while( (opt = getopt(argc,argv,"pwf:o:i:")) != -1) {
     switch(opt) {
     case 'o':
       ofile = optarg;
@@ -64,6 +66,9 @@ void main(int argc, char** argv) {
       break;
     case 'p':
       mode |= MODE_PRINT;
+      break;
+    case 'w':
+      mode |= MODE_WEIGHTS;
       break;
     case 'f':
       format = optarg;
@@ -88,12 +93,25 @@ void main(int argc, char** argv) {
 
   // add the new file(s) to the trie and graph
   for(; optind < argc; optind++) {
+    start = clock();
+    printf("parsing RDF file %s ... ", argv[optind]);
+    fflush(stdout);
     f1 = fopen(argv[optind],"r");
     parse_graph(&graph, f1, format, "http://localhost/");
     fclose(f1);
+    end = clock();
+    printf("done (%d ms)!\n", (end-start) * 1000 / CLOCKS_PER_SEC);
   }
 
 
+  if(mode & MODE_WEIGHTS) { 
+    start = clock();
+    printf("computing edge weights ... ");
+    fflush(stdout);
+    compute_weights_combi(&graph);
+    end = clock();
+    printf("done (%d ms)!\n", (end-start) * 1000 / CLOCKS_PER_SEC);
+  }
 
 
   if(mode & MODE_DUMP) { 
@@ -102,7 +120,6 @@ void main(int argc, char** argv) {
 
 		 
   if(mode & MODE_PRINT) {   
-    art_iter(graph.uris,print_uri,NULL);
     printf("Total number of vertices: %d\n",graph.num_vertices);
 
     printf("number of vertices: %d\n", igraph_vcount(graph.graph));

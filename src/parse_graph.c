@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <float.h>
 #include <raptor2/raptor2.h>
 
 #include "art.h"
@@ -12,6 +13,7 @@ typedef struct graph_data {
   rgraph *graph;
   igraph_vector_t *edges;
   igraph_vector_t *labels;
+  igraph_vector_t *weights;
 } graph_data;
 
 
@@ -65,15 +67,12 @@ void update_graph(graph_data *data) {
     // add edges to graph
     igraph_add_edges(data->graph->graph, data->edges, 0);
 
-    // for the last edges, add the proper label
-    int edgecount  = igraph_ecount(data->graph->graph);
-    int labelcount = igraph_vector_size(data->labels);
-    int label;
-    for(i = edgecount - labelcount; i <  edgecount; i++) {
-      label = igraph_vector_e(data->labels, i - edgecount + labelcount);
-      igraph_cattribute_EAN_set(data->graph->graph, ATTR_LABEL, i, label);
-      igraph_cattribute_EAN_set(data->graph->graph, ATTR_WEIGHT, i, 0.0);
-    }
+    // add edge labels
+    igraph_vector_append(data->graph->labels, data->labels);
+    
+    // add edge weights
+    igraph_vector_append(data->graph->weights, data->weights);
+
 
     igraph_vector_clear(data->edges);
     igraph_vector_clear(data->labels);
@@ -94,6 +93,7 @@ void parse_edge_statement_handler(graph_data *data, const raptor_statement* stat
     igraph_vector_push_back (data->edges, from);
     igraph_vector_push_back (data->edges, to);
     igraph_vector_push_back (data->labels, label);
+    igraph_vector_push_back (data->weights, DBL_MAX);
   }
 
   update_graph(data);
@@ -118,7 +118,11 @@ void parse_graph(rgraph *graph, FILE* rdffile, const char* format, const char* _
   igraph_vector_t labels;
   igraph_vector_init(&labels,BUFSIZE / 2);
 
-  graph_data data = {graph, &edges, &labels};
+  // collect edge weights in this vector
+  igraph_vector_t weights;
+  igraph_vector_init(&weights,BUFSIZE / 2);
+
+  graph_data data = {graph, &edges, &labels, &weights};
 
   raptor_parser_set_statement_handler(parser, &data, parse_edge_statement_handler);
   raptor_parser_parse_file_stream(parser, rdffile, NULL, base_uri);
@@ -128,6 +132,7 @@ void parse_graph(rgraph *graph, FILE* rdffile, const char* format, const char* _
 
   igraph_vector_destroy(&edges);
   igraph_vector_destroy(&labels);
+  igraph_vector_destroy(&weights);
   raptor_free_uri(base_uri);
   raptor_free_parser(parser);
   raptor_free_world(world);
