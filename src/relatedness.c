@@ -11,8 +11,8 @@
 #include "graphio.h"
 
 
-void usage() {
-  printf("Usage: relatedness -i restorefile\n");
+void usage(char *cmd) {
+  printf("Usage: %s -i restorefile\n", cmd);
   exit(1);
 }
 
@@ -24,6 +24,12 @@ double relatedness(rgraph* g, const char* from, const char* to) {
   int *toid   = art_search(g->uris,to, strlen(to));
 
   if(!fromid || !toid) {
+    if (!fromid) {
+      printf("<%s> not found in the graph!\n", from);
+    }
+    if (!toid) {
+      printf("<%s> not found in the graph!\n", to);
+    }
     return DBL_MAX;
   }
 
@@ -59,7 +65,7 @@ void main(int argc, char** argv) {
       ifile = optarg;
       break;
     default:
-      usage();
+      usage(argv[0]);
     }
   }
 
@@ -100,7 +106,7 @@ void main(int argc, char** argv) {
 
     destroy_rgraph(&graph);
   } else {
-    usage();
+    usage(argv[0]);
   }
 
 }

@@ -11688,6 +11688,8 @@ fi
 ac_fn_c_check_header_mongrel "$LINENO" "igraph/igraph.h" "ac_cv_header_igraph_igraph_h" "$ac_includes_default"
 if test "x$ac_cv_header_igraph_igraph_h" = xyes; then :
 
+else
+  as_fn_error $? "\"required igraph headers are missing\"" "$LINENO" 5
 fi
 
 
@@ -11737,6 +11739,8 @@ fi
 ac_fn_c_check_header_mongrel "$LINENO" "raptor2/raptor2.h" "ac_cv_header_raptor2_raptor2_h" "$ac_includes_default"
 if test "x$ac_cv_header_raptor2_raptor2_h" = xyes; then :
 
+else
+  as_fn_error $? "\"required raptor2 headers are missing\"" "$LINENO" 5
 fi
 
 
@@ -11792,6 +11796,8 @@ fi
 ac_fn_c_check_header_mongrel "$LINENO" "math.h" "ac_cv_header_math_h" "$ac_includes_default"
 if test "x$ac_cv_header_math_h" = xyes; then :
 
+else
+  as_fn_error $? "\"required math headers are missing\"" "$LINENO" 5
 fi
 
 
