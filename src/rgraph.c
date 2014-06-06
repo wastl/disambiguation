@@ -25,6 +25,11 @@ void init_rgraph(rgraph *graph) {
   igraph_vector_init(graph->weights,0);
 }
 
+
+int _destroy_trie_values_cb(void *_data, const unsigned char *key, uint32_t key_len, void *value) {
+  free(value);
+}
+
 /**
  * Destroy all resources claimed by a relatedness graph
  */
@@ -45,6 +50,8 @@ void destroy_rgraph(rgraph *graph) {
 
   free(graph->labels);
   free(graph->weights);
+
+  art_iter(graph->uris,_destroy_trie_values_cb,NULL);  
 
   destroy_art_tree(graph->uris);
   free(graph->uris);

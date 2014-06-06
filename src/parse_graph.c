@@ -76,6 +76,7 @@ void update_graph(graph_data *data) {
 
     igraph_vector_clear(data->edges);
     igraph_vector_clear(data->labels);
+    igraph_vector_clear(data->weights);
   }
 }
 
