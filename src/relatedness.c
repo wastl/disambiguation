@@ -29,11 +29,22 @@ double relatedness(rgraph* g, const char* from, const char* to) {
 
   // holds the edges of the shortest path
   igraph_vector_t edges;
+  igraph_vector_init(&edges,0);
   igraph_get_shortest_path_dijkstra(g->graph, NULL, &edges, *fromid, *toid, g->weights, IGRAPH_ALL);
 
-  printf("distance: %d\n", igraph_vector_size(&edges));
+  double r = 0.0;
 
-  return igraph_vector_prod(&edges);
+  int i;
+  for(i=0; i<igraph_vector_size(&edges); i++) {
+    printf("%s ", g->vertices[(int)igraph_vector_e(g->labels,igraph_vector_e(&edges,i))]);
+    //printf("%d ", (int)igraph_vector_e(g->labels,igraph_vector_e(&edges,i)));
+    r += igraph_vector_e(g->weights,igraph_vector_e(&edges,i));
+  }
+  printf("\n");
+
+  igraph_vector_destroy(&edges);
+
+  return r;
 }
 
 
@@ -64,16 +75,28 @@ void main(int argc, char** argv) {
     // read from stdin pairs of vertices and compute relatedness
     char *line    = NULL;
     size_t len    = 0;
-    char *from    = malloc(2048 * sizeof(char));
-    char *to      = malloc(2048 * sizeof(char));
+    char *from, *to, *send;
     double r;
     while((getline(&line,&len,stdin) != -1)) {
-      sscanf(line,"%2048s %2048s",from,to);
+      from = line;
+      to   = line;
+      while(*to != ' ' && to) {
+	to++;
+      }
+      *to='\0'; to++;
+      send = to;
+      while(send && *send != '\n') {
+	send++;
+      }
+      *send = '\0';
+
       printf("computing relatedness for %s and %s ... ",from,to);
       fflush(stdout);
       r = relatedness(&graph,from,to);
       printf("%.6f!\n",r);
     }
+
+    free(line);
 
     destroy_rgraph(&graph);
   } else {

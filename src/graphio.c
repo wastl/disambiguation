@@ -90,8 +90,10 @@ int _restore_callback(void *_data, const unsigned char *key, uint32_t key_len, v
   rgraph *graph = (rgraph*)_data;
   int    *id    = (int*)value;
   graph->vertices[*id] = malloc( (key_len+1) * sizeof(char) );
-  memcpy(graph->vertices[*id], key, key_len);
+  memcpy(graph->vertices[*id], key, key_len * sizeof(char));
   graph->vertices[*id][key_len] = '\0';
+
+  return 0;
 }
 
 
@@ -163,7 +165,7 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
 	sscanf(line,"%d",id);
 	len = strlen(uri_ptr+1);
 	*(uri_ptr+len) = '\0';
-	art_insert(graph->uris, uri_ptr+1, len, id);
+	art_insert(graph->uris, uri_ptr+1, len-1, id);
 	graph->num_vertices++;
       }
     }
