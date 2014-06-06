@@ -38,8 +38,8 @@ int print_uri(void *_data, const unsigned char *key, uint32_t key_len, void *val
 
 
 
-void usage() {
-  printf("Usage: create_graph [-f format] [-o dumpfile] [-i restorefile] [-p] [-w] rdffile\n");
+void usage(char *cmd) {
+  printf("Usage: %s [-f format] [-o dumpfile] [-i restorefile] [-p] [-w] rdffile\n", cmd);
 }
 
 
@@ -74,12 +74,12 @@ void main(int argc, char** argv) {
       format = optarg;
       break;
     default:
-      usage();
+      usage(argv[0]);
     }
   }
 
   if(mode == 0) {
-    usage();
+    usage(argv[0]);
     exit(1);
   }
 
