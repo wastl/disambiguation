@@ -1,0 +1,12 @@
+# backup-files
+*~
+.#*
+
+Makefile
+autom4te.cache/
+
+src/.deps/
+# binaries
+src/*.o
+src/create_graph
+src/relatedness
