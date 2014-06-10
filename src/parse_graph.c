@@ -4,7 +4,6 @@
 #include <float.h>
 #include <raptor2/raptor2.h>
 
-#include "art.h"
 #include "rgraph.h"
 #include "parse_graph.h"
 
@@ -17,34 +16,40 @@ typedef struct graph_data {
 } graph_data;
 
 
+static int err;
 
 /**
  * Add a node to the URI->vertice trie in case it is an URI node and does not exist yet.
  * Returns the vertice id of the node, or -1 in case the node is not a URI.
  */
-int update_trie(rgraph *graph, raptor_term* node) {
+static inline int update_trie(rgraph *graph, raptor_term* node) {
   if(node->type == RAPTOR_TERM_TYPE_URI) {    
+    int data;
     size_t len = 0;
     unsigned char* uri = raptor_uri_as_counted_string(node->value.uri , &len);
+    char *uric;
 
-    int* data = art_search(graph->uris, uri, len);
+    khiter_t k = kh_get(uris,graph->uris,uri);
 
-    if(!data) {
-      // add new ID to trie
-      data = malloc(sizeof(int));
-      *data = graph->num_vertices++;
-      art_insert(graph->uris, uri, len, data);
+    // uri not found
+    if(k == kh_end(graph->uris)) {
+      data = graph->num_vertices++;
+
+      // add new ID to map
+      uric = strndup(uri,len);
+      k = kh_put(uris, graph->uris, uric, &err);
+      kh_val(graph->uris, k) = data;
 
       // add URI to vertices
-      if(*data % VINC == 0) {
-	graph->vertices = realloc(graph->vertices, (*data + VINC) * sizeof(char*));
+      if(data % VINC == 0) {
+	graph->vertices = realloc(graph->vertices, (data + VINC) * sizeof(char*));
       }
-      graph->vertices[*data] = malloc( (len+1) * sizeof(char));
-      memcpy(graph->vertices[*data], uri, len);
-      graph->vertices[*data][len] = '\0';
+      graph->vertices[data] = uric;
+    } else {
+      data = kh_val(graph->uris, k);
     }
 
-    return *data;
+    return data;
   } else {
     return -1;
   }
@@ -57,7 +62,6 @@ int update_trie(rgraph *graph, raptor_term* node) {
 void update_graph(graph_data *data) {
   // commit batch of edges to graph
   if(igraph_vector_size(data->edges) >= BUFSIZE) {
-    int i;
 
     // check if we need to enlarge the graph
     if(igraph_vcount(data->graph->graph) < data->graph->num_vertices) {

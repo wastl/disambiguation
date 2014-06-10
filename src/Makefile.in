@@ -91,17 +91,16 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_create_graph_OBJECTS = create_graph.$(OBJEXT) art.$(OBJEXT) \
-	graphio.$(OBJEXT) parse_graph.$(OBJEXT) rgraph.$(OBJEXT) \
-	weights_combi.$(OBJEXT)
+am_create_graph_OBJECTS = create_graph.$(OBJEXT) graphio.$(OBJEXT) \
+	parse_graph.$(OBJEXT) rgraph.$(OBJEXT) weights_combi.$(OBJEXT)
 create_graph_OBJECTS = $(am_create_graph_OBJECTS)
 create_graph_DEPENDENCIES =
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_relatedness_OBJECTS = relatedness.$(OBJEXT) art.$(OBJEXT) \
-	graphio.$(OBJEXT) rgraph.$(OBJEXT)
+am_relatedness_OBJECTS = relatedness.$(OBJEXT) graphio.$(OBJEXT) \
+	rgraph.$(OBJEXT)
 relatedness_OBJECTS = $(am_relatedness_OBJECTS)
 relatedness_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -280,8 +279,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-create_graph_SOURCES = create_graph.c art.c graphio.c parse_graph.c rgraph.c weights_combi.c
-relatedness_SOURCES = relatedness.c art.c graphio.c rgraph.c
+create_graph_SOURCES = create_graph.c graphio.c parse_graph.c rgraph.c weights_combi.c
+relatedness_SOURCES = relatedness.c graphio.c rgraph.c
 create_graph_LDADD = @rdflibs@
 all: all-am
 
@@ -381,7 +380,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/art.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/create_graph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_graph.Po@am__quote@

@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "art.h"
 #include "rgraph.h"
 #include "graphio.h"
 #include "parse_graph.h"
@@ -23,18 +22,6 @@
  * been created, we compute relatedness values between nodes and save the whole graph to disk.
  */
 
-
-
-
-int print_uri(void *_data, const unsigned char *key, uint32_t key_len, void *value) {
-  int* data = (int*)value;
-  char uri[key_len+1];
-  strncpy(uri,key,key_len);
-  uri[key_len]='\0';
-
-  printf("%05d: uri %s\n",*data, uri);
-  return 0;
-}
 
 
 

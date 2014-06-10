@@ -7,17 +7,14 @@ void init_rgraph(rgraph *graph) {
   /* turn on attribute handling */
   igraph_i_set_attribute_table(&igraph_cattribute_table);
 
-  graph->uris  = malloc(sizeof(art_tree));
+  graph->uris  = kh_init(uris);
   graph->graph = malloc(sizeof(igraph_t));
   graph->vertices = malloc(VINC * sizeof(char*));
   graph->labels = malloc(sizeof(igraph_vector_t));
   graph->weights = malloc(sizeof(igraph_vector_t));
 
-    // init empty graph
+  // init empty graph
   igraph_empty(graph->graph,0,GRAPH_MODE);
-
-  // init empty trie for URI->vertice mapping
-  init_art_tree(graph->uris);
 
   graph->num_vertices = 0;
 
@@ -25,10 +22,6 @@ void init_rgraph(rgraph *graph) {
   igraph_vector_init(graph->weights,0);
 }
 
-
-int _destroy_trie_values_cb(void *_data, const unsigned char *key, uint32_t key_len, void *value) {
-  free(value);
-}
 
 /**
  * Destroy all resources claimed by a relatedness graph
@@ -39,6 +32,7 @@ void destroy_rgraph(rgraph *graph) {
   igraph_destroy(graph->graph);
   free(graph->graph);
 
+  // free strings in graph->vertices and graph->uris
   for(i=0; i<graph->num_vertices; i++) {
     free(graph->vertices[i]);
   }
@@ -51,9 +45,28 @@ void destroy_rgraph(rgraph *graph) {
   free(graph->labels);
   free(graph->weights);
 
-  art_iter(graph->uris,_destroy_trie_values_cb,NULL);  
-
-  destroy_art_tree(graph->uris);
-  free(graph->uris);
+  kh_destroy(uris, graph->uris);
   
 }
+
+
+/**
+ * lookup the vertice id of the vertice representing the given uri. Returns a pointer to the vertice
+ * ID (type int*) if the URI is found or NULL otherwise.
+ */
+inline int rgraph_get_vertice_id(rgraph *graph, const char* uri) {
+  khiter_t k = kh_get(uris,graph->uris,uri);
+  if(k == kh_end(graph->uris)) {
+    return 0;
+  } else {
+    return kh_val(graph->uris, k);
+  }
+} 
+
+
+
+inline void rgraph_set_vertice_id(rgraph *graph, const char* uri, int vid) {
+  int err;
+  khiter_t k = kh_put(uris, graph->uris, uri, &err);
+  kh_val(graph->uris, k) = vid;
+} 

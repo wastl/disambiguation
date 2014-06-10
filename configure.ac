@@ -20,4 +20,13 @@ AC_CHECK_LIB(m,log, , AC_MSG_ERROR("required math library is missing"))
 AC_CHECK_HEADER(math.h, , AC_MSG_ERROR("required math headers are missing"))
 
 
+AC_ARG_ENABLE(profiling,AS_HELP_STRING(--enable-profiling,enable GNU gprof profiling support),[
+CFLAGS="$CFLAGS -g -pg"
+])
+
+AC_ARG_ENABLE(profiling,AS_HELP_STRING(--enable-warnings,enable compile-time warnings),[
+CFLAGS="$CFLAGS -Wall -Wextra"
+])
+
+
 AC_OUTPUT([Makefile src/Makefile])

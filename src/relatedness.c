@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "art.h"
 #include "rgraph.h"
 #include "graphio.h"
 
@@ -20,8 +19,8 @@ void usage(char *cmd) {
  * Compute relatedness by finding the shortest path between two vertices.
  */
 double relatedness(rgraph* g, const char* from, const char* to) {
-  int *fromid = art_search(g->uris,from, strlen(from));
-  int *toid   = art_search(g->uris,to, strlen(to));
+  int fromid = rgraph_get_vertice_id(g,from);
+  int toid   = rgraph_get_vertice_id(g,to);
 
   if(!fromid || !toid) {
     if (!fromid) {
@@ -36,7 +35,7 @@ double relatedness(rgraph* g, const char* from, const char* to) {
   // holds the edges of the shortest path
   igraph_vector_t edges;
   igraph_vector_init(&edges,0);
-  igraph_get_shortest_path_dijkstra(g->graph, NULL, &edges, *fromid, *toid, g->weights, IGRAPH_ALL);
+  igraph_get_shortest_path_dijkstra(g->graph, NULL, &edges, fromid, toid, g->weights, IGRAPH_ALL);
 
   double r = 0.0;
 

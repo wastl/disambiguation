@@ -1,20 +1,6 @@
 #include <string.h>
 
-#include "art.h"
 #include "graphio.h"
-
-int _dump_callback(void *_data, const unsigned char *key, uint32_t key_len, void *value) {
-  FILE *fout = (FILE*)_data;
-  int* data = (int*)value;
-  char uri[key_len+1];
-  strncpy(uri,key,key_len);
-  uri[key_len]='\0';
-
-  fprintf(fout,"%d,%s\n",*data, uri);
-  return 0;
-
-}
-
 
 /**
  * Dump the trie structure into a dumpfile as CSV of the form id,uri
@@ -59,9 +45,12 @@ void dump_graph(rgraph *graph, const char* file_prefix) {
 void dump_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE* labelfile, FILE* weightsfile) {
   int i, v;
   double w;
+  khiter_t k;
+  const char* key;
 
   printf("- dumping vertice data ...\n");
-  art_iter(graph->uris,_dump_callback,verticefile);
+  kh_foreach(graph->uris,key,v, fprintf(verticefile,"%d,%s\n",v, key) )
+
 
   printf("- dumping edge data ...\n");
   igraph_write_graph_edgelist(graph->graph, graphfile);
@@ -82,18 +71,6 @@ void dump_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE* l
     fwrite(&w, sizeof(double), 1, weightsfile);
   }
   fflush(weightsfile);
-}
-
-
-
-int _restore_callback(void *_data, const unsigned char *key, uint32_t key_len, void *value) {
-  rgraph *graph = (rgraph*)_data;
-  int    *id    = (int*)value;
-  graph->vertices[*id] = malloc( (key_len+1) * sizeof(char) );
-  memcpy(graph->vertices[*id], key, key_len * sizeof(char));
-  graph->vertices[*id][key_len] = '\0';
-
-  return 0;
 }
 
 
@@ -136,46 +113,60 @@ void restore_graph(rgraph *graph, const char* file_prefix) {
 }
 
 
-
-/**
- * Restore the trie structure from a dumpfile as CSV of the form id,uri
- */
-void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE *labelfile, FILE *weightsfile) {
-  // read line by line until EOF
+void restore_vertice_data(rgraph *graph, FILE* verticefile) {
+  khiter_t k;
+  char *uri_ptr, *uri;
+  int len = 0;
+  int id;
   char* line    = NULL;
   size_t buf_len    = 0;
-  int len = 0;
-  char* uri_ptr;
-  int*   id;
-  int i;
-  double d;
-  
+  int err;
+
   if(verticefile) {
     printf("- restoring vertice data ... ");
     fflush(stdout);
 
     while((getline(&line,&buf_len,verticefile) != -1)) {
+
       // find first comma and copy uri
-      uri_ptr = line;
-      while(*uri_ptr && *uri_ptr != ',') {
-	uri_ptr++;
-      }
-      if(*uri_ptr == ',') {
-	id = malloc(sizeof(int));
-	sscanf(line,"%d",id);
+      uri_ptr = index(line,',');
+      if(uri_ptr) {
 	len = strlen(uri_ptr+1);
-	*(uri_ptr+len) = '\0';
-	art_insert(graph->uris, uri_ptr+1, len-1, id);
+	*(uri_ptr+len) = '\0';         // replace newline with end-of-string
+
+	uri = strndup(uri_ptr+1, len);
+	k = kh_put(uris, graph->uris, uri, &err);
+
+	// read the integer vertice id
+	sscanf(line,"%d",&(kh_val(graph->uris, k)));
+
 	graph->num_vertices++;
       }
     }
     // restore ids by using a callback
     graph->vertices = realloc(graph->vertices, (graph->num_vertices / VINC + 1) * VINC * sizeof(char*));
-    art_iter(graph->uris,_restore_callback,graph);
+    kh_foreach(graph->uris, uri, id, graph->vertices[id] = uri )  
+
     printf("%d vertices!\n",graph->num_vertices);
   } else {
     printf("- not restoring vertice data, file does not exist!\n");
   }
+
+  if(line) {
+    free(line);
+  }
+}
+
+
+/**
+ * Restore the trie structure from a dumpfile as CSV of the form id,uri
+ */
+void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE *labelfile, FILE *weightsfile) {
+  int  id;
+  int i;
+  double d;
+
+  restore_vertice_data(graph, verticefile);
 
   if(graphfile) {
     printf("- restoring edge data ... ");
@@ -190,8 +181,8 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
     printf("- restoring label data ... ");
     fflush(stdout);
 
-    while( fread(id, sizeof(int), 1, labelfile) > 0) {
-      igraph_vector_push_back(graph->labels,*id);
+    while( fread(&id, sizeof(int), 1, labelfile) > 0) {
+      igraph_vector_push_back(graph->labels,id);
     }
     printf("%d labels!\n",igraph_vector_size(graph->labels));
   } else {
