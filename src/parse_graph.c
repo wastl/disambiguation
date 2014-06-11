@@ -16,40 +16,53 @@ typedef struct graph_data {
 } graph_data;
 
 
-static int err;
-
 /**
  * Add a node to the URI->vertice trie in case it is an URI node and does not exist yet.
  * Returns the vertice id of the node, or -1 in case the node is not a URI.
  */
 static inline int update_trie(rgraph *graph, raptor_term* node) {
   if(node->type == RAPTOR_TERM_TYPE_URI) {    
-    int data;
-    size_t len = 0;
-    unsigned char* uri = raptor_uri_as_counted_string(node->value.uri , &len);
-    char *uric;
+    int err, data;
+    khiter_t k;
+    unsigned char* uri = raptor_uri_as_string(node->value.uri);
 
-    khiter_t k = kh_get(uris,graph->uris,uri);
+#ifdef USE_THREADS
+    pthread_rwlock_rdlock(&graph->mutex_v);
+#endif
+
+    k = kh_get(uris, graph->uris, uri);
+
+#ifdef USE_THREADS
+    pthread_rwlock_unlock(&graph->mutex_v);
+#endif
 
     // uri not found
     if(k == kh_end(graph->uris)) {
-      data = graph->num_vertices++;
+      uri = raptor_uri_to_string(node->value.uri);
+
+#ifdef USE_THREADS
+      pthread_rwlock_wrlock(&graph->mutex_v);
+#endif
+
+      k = kh_put(uris, graph->uris, uri, &err);
 
       // add new ID to map
-      uric = strndup(uri,len);
-      k = kh_put(uris, graph->uris, uric, &err);
-      kh_val(graph->uris, k) = data;
+      kh_val(graph->uris, k) = graph->num_vertices++;
 
       // add URI to vertices
-      if(data % VINC == 0) {
-	graph->vertices = realloc(graph->vertices, (data + VINC) * sizeof(char*));
+      if(kh_val(graph->uris, k) % VINC == 0) {
+	graph->vertices = realloc(graph->vertices, (kh_val(graph->uris, k) + VINC) * sizeof(char*));
       }
-      graph->vertices[data] = uric;
-    } else {
-      data = kh_val(graph->uris, k);
+      graph->vertices[kh_val(graph->uris, k)] = uri;
+      
+#ifdef USE_THREADS
+      pthread_rwlock_unlock(&graph->mutex_v);
+#endif
     }
 
-    return data;
+
+    return kh_val(graph->uris, k);
+
   } else {
     return -1;
   }
@@ -59,9 +72,13 @@ static inline int update_trie(rgraph *graph, raptor_term* node) {
  * Check if the batch is full and updating the graph structure is required. Enlarge graph with
  * new vertices and edges if necessary.
  */
-void update_graph(graph_data *data) {
+static inline void update_graph(graph_data *data) {
   // commit batch of edges to graph
   if(igraph_vector_size(data->edges) >= BUFSIZE) {
+
+#ifdef USE_THREADS
+    pthread_mutex_lock(&data->graph->mutex_g);
+#endif
 
     // check if we need to enlarge the graph
     if(igraph_vcount(data->graph->graph) < data->graph->num_vertices) {
@@ -76,6 +93,10 @@ void update_graph(graph_data *data) {
     
     // add edge weights
     igraph_vector_append(data->graph->weights, data->weights);
+
+#ifdef USE_THREADS
+    pthread_mutex_unlock(&data->graph->mutex_g);
+#endif
 
 
     igraph_vector_clear(data->edges);
@@ -93,6 +114,8 @@ void parse_edge_statement_handler(graph_data *data, const raptor_statement* stat
   int from  = update_trie(data->graph, statement->subject);
   int label = update_trie(data->graph, statement->predicate);
   int to    = update_trie(data->graph, statement->object);
+
+
 
   if(from >= 0 && to >= 0) {
     igraph_vector_push_back (data->edges, from);

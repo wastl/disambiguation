@@ -129,7 +129,7 @@ void restore_vertice_data(rgraph *graph, FILE* verticefile) {
     while((getline(&line,&buf_len,verticefile) != -1)) {
 
       // find first comma and copy uri
-      uri_ptr = index(line,',');
+      uri_ptr = strchr(line,',');
       if(uri_ptr) {
 	len = strlen(uri_ptr+1);
 	*(uri_ptr+len) = '\0';         // replace newline with end-of-string

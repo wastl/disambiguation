@@ -29,4 +29,20 @@ CFLAGS="$CFLAGS -Wall -Wextra"
 ])
 
 
+threads=
+AC_ARG_ENABLE(threads, AC_HELP_STRING([--enable-threads],
+                      [enable multi-threaded computation (default is no)]),
+                    ac_enable_threads=$enableval,
+                    ac_enable_threads=no)
+if test "$ac_enable_threads" = yes; then
+  AC_DEFINE(USE_THREADS, 1, [use threads])
+  CFLAGS="$CFLAGS -pthread"
+  AC_CHECK_LIB(pthread,pthread_create,threads=-lpthread, [AC_CHECK_LIB(c_r,pthread_create,threads=-lc_r)])
+fi
+AC_SUBST(threads)
+
+
+
+
+
 AC_OUTPUT([Makefile src/Makefile])

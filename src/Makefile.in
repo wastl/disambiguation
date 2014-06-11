@@ -102,7 +102,7 @@ am__v_lt_1 =
 am_relatedness_OBJECTS = relatedness.$(OBJEXT) graphio.$(OBJEXT) \
 	rgraph.$(OBJEXT)
 relatedness_OBJECTS = $(am_relatedness_OBJECTS)
-relatedness_LDADD = $(LDADD)
+relatedness_DEPENDENCIES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -276,12 +276,14 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+threads = @threads@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 create_graph_SOURCES = create_graph.c graphio.c parse_graph.c rgraph.c weights_combi.c
 relatedness_SOURCES = relatedness.c graphio.c rgraph.c
-create_graph_LDADD = @rdflibs@
+create_graph_LDADD = @rdflibs@ @threads@
+relatedness_LDADD = @threads@
 all: all-am
 
 .SUFFIXES:

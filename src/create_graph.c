@@ -4,6 +4,12 @@
 #include <unistd.h>
 #include <time.h>
 
+#ifdef USE_THREADS
+#include <pthread.h>
+#include <semaphore.h>
+#endif
+
+
 #include "rgraph.h"
 #include "graphio.h"
 #include "parse_graph.h"
@@ -23,6 +29,15 @@
  */
 
 
+typedef struct rdffile {
+  const char* filename;
+  const char* format;
+#ifdef USE_THREADS
+  sem_t       *thread_s;
+#endif
+} rdffile;
+
+static rgraph graph;
 
 
 void usage(char *cmd) {
@@ -30,15 +45,55 @@ void usage(char *cmd) {
 }
 
 
+void process_file(void* data) {
+  clock_t start, end;
+  rdffile *attrs = (rdffile*)data;
+  FILE *f1;
+
+#ifdef USE_THREADS
+  sem_wait(attrs->thread_s);
+#endif
+
+  printf("parsing RDF file %s ... ", attrs->filename);
+#ifdef USE_THREADS
+  printf("\n");
+#endif
+  fflush(stdout);
+
+  start = clock();
+  f1 = fopen(attrs->filename,"r");
+  parse_graph(&graph, f1, attrs->format, "http://localhost/");
+  fclose(f1);
+  end = clock();
+
+#ifdef USE_THREADS
+  printf("RDF file %s ", attrs->filename);
+#endif
+  printf("done (%d ms)!\n", (end-start) * 1000 / CLOCKS_PER_SEC);
+
+#ifdef USE_THREADS
+  sem_post(attrs->thread_s);
+#endif
+
+  free(attrs);
+}
+
 void main(int argc, char** argv) {
-  int opt;
+  int opt, i;
   int mode = 0;
   char *ofile, *ifile;
   char *format = "rdfxml";
-  FILE *f1;
   clock_t start, end;
 
-  rgraph graph;
+#ifdef USE_THREADS
+  pthread_t* threads;
+  sem_t      thread_s;
+
+  // use semaphore to make sure not too many threads are working in
+  // parallel (poor man's thread pool)
+  sem_init(&thread_s,0,NUM_THREADS);
+#endif
+
 
   // read options from command line
   while( (opt = getopt(argc,argv,"pwf:o:i:")) != -1) {
@@ -78,17 +133,32 @@ void main(int argc, char** argv) {
     restore_graph(&graph,ifile);
   }
 
+  #ifdef USE_THREADS
+  int thread_count = (argc-optind);
+  threads = malloc ( thread_count * sizeof(pthread_t) );
+  i=0;
+  #endif
+
   // add the new file(s) to the trie and graph
   for(; optind < argc; optind++) {
-    start = clock();
-    printf("parsing RDF file %s ... ", argv[optind]);
-    fflush(stdout);
-    f1 = fopen(argv[optind],"r");
-    parse_graph(&graph, f1, format, "http://localhost/");
-    fclose(f1);
-    end = clock();
-    printf("done (%d ms)!\n", (end-start) * 1000 / CLOCKS_PER_SEC);
+    rdffile *attrs = malloc(sizeof(rdffile));
+    attrs->filename = argv[optind];
+    attrs->format   = format;
+
+#ifndef USE_THREADS
+    process_file(attrs);
+#else
+    attrs->thread_s = &thread_s;
+    pthread_create(&threads[i++], NULL, &process_file, attrs);
+    
+#endif
   }
+
+  #ifdef USE_THREADS
+  for(i = 0; i<thread_count; i++) {
+    pthread_join(threads[i],NULL);
+  }
+  #endif
 
 
   if(mode & MODE_WEIGHTS) { 
@@ -116,4 +186,7 @@ void main(int argc, char** argv) {
 
   destroy_rgraph(&graph);
 
+#ifdef USE_THREADS
+  pthread_exit(NULL);
+#endif
 }

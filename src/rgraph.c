@@ -12,14 +12,21 @@ void init_rgraph(rgraph *graph) {
   graph->vertices = malloc(VINC * sizeof(char*));
   graph->labels = malloc(sizeof(igraph_vector_t));
   graph->weights = malloc(sizeof(igraph_vector_t));
+  graph->prefixes = NULL;
 
   // init empty graph
   igraph_empty(graph->graph,0,GRAPH_MODE);
 
   graph->num_vertices = 0;
+  graph->num_prefixes = 0;
 
   igraph_vector_init(graph->labels,0);
   igraph_vector_init(graph->weights,0);
+
+#ifdef USE_THREADS
+  pthread_rwlock_init(&graph->mutex_v,NULL);
+  pthread_mutex_init(&graph->mutex_g,NULL);
+#endif
 }
 
 
@@ -45,7 +52,16 @@ void destroy_rgraph(rgraph *graph) {
   free(graph->labels);
   free(graph->weights);
 
+  if(graph->prefixes) {
+    free(graph->prefixes);
+  }
+
   kh_destroy(uris, graph->uris);
+
+#ifdef USE_THREADS
+  pthread_rwlock_destroy(&graph->mutex_v);
+  pthread_mutex_destroy(&graph->mutex_g);
+#endif
   
 }
 
@@ -70,3 +86,36 @@ inline void rgraph_set_vertice_id(rgraph *graph, const char* uri, int vid) {
   khiter_t k = kh_put(uris, graph->uris, uri, &err);
   kh_val(graph->uris, k) = vid;
 } 
+
+
+
+/**
+ * Add a URI prefix to the list of prefixes. List will be expanded if necessary. The given string
+ * will be duplicated.
+ */
+void rgraph_add_prefix(rgraph *graph, const char* uri) {
+  graph->prefixes = realloc( graph->prefixes, (++graph->num_prefixes) * sizeof(char*) );
+  graph->prefixes[graph->num_prefixes-1] = strdup(uri);
+}
+
+/**
+ * Check if the given URI has one of the defined prefixes. Returns a pointer to the prefix. If
+ * pos is not null, pos will contain the first position in the URI after the prefix.
+ */
+char* rgraph_has_prefix(rgraph *graph, const char* uri, char** pos) {
+  char *ptr1, *ptr2; int npref = 0;
+  for(npref; npref < graph->num_prefixes; npref++) {
+    ptr1 = uri; ptr2 = graph->prefixes[npref];
+    while(*ptr1 == *ptr2 && *ptr1 && *ptr2) {
+      ptr1++;
+      ptr2++;
+    }
+    if(!*ptr2) {
+      if(pos) {
+	*pos = ptr1;
+      }
+      return graph->prefixes[npref];
+    }
+  }
+  return NULL;
+}
