@@ -231,6 +231,23 @@ static const double __ac_HASH_UPPER = 0.77;
 			return __ac_iseither(h->flags, i)? h->n_buckets : i;		\
 		} else return 0;												\
 	}																	\
+	SCOPE khint_t kh_pget_##name(const kh_##name##_t *h, khkey_t key, pthread_rwlock_t *lock) \
+	{																	\
+		if (h->n_buckets) {												\
+			khint_t k, i, last, mask, step = 0; \
+			k = __hash_func(key);                                           \
+                        pthread_rwlock_rdlock(lock);                                    \
+			mask = h->n_buckets - 1;									\
+                        i = k & mask;							\
+			last = i; \
+			while (!__ac_isempty(h->flags, i) && (__ac_isdel(h->flags, i) || !__hash_equal(h->keys[i], key))) { \
+				i = (i + (++step)) & mask; \
+				if (i == last) { pthread_rwlock_unlock(lock);  return h->n_buckets; } \
+			}															\
+                        pthread_rwlock_unlock(lock);                                    \
+			return __ac_iseither(h->flags, i)? h->n_buckets : i;		\
+		} else return 0;												\
+	}																	\
 	SCOPE int kh_resize_##name(kh_##name##_t *h, khint_t new_n_buckets) \
 	{ /* This function uses 0.25*n_buckets bytes of working space instead of [sizeof(key_t+val_t)+.25]*n_buckets. */ \
 		khint32_t *new_flags = 0;										\
@@ -388,12 +405,86 @@ static kh_inline khint_t __ac_X31_hash_string(const char *s)
 	if (h) for (++s ; *s; ++s) h = (h << 5) - h + (khint_t)*s;
 	return h;
 }
+
+static kh_inline khint_t __ac_X31a_hash_string(const char *s)
+{
+	khint_t h = (khint_t)*s;
+	if (h) for (++s ; *s; ++s) h = (h << 5) - h + (khint_t)*s;
+	return h;
+}
+
+
+static kh_inline khint_t __ac_FNV1a_hash_string(const char *s)
+{
+  khint_t h = 0;
+  while(*s) {
+    h ^= (khint_t)*s;
+    h += (h<<1) + (h<<4) + (h<<7) + (h<<8) + (h<<24);
+    s++;
+  }
+  return h;
+}
+
+/*
+ * Murmur hash implementation, hashing 4 bytes at a time
+ */
+static kh_inline khint_t __ac_MURMUR_hash_string ( const char * key)
+{
+	// 'm' and 'r' are mixing constants generated offline.
+	// They're not really 'magic', they just happen to work well.
+
+	const unsigned int m = 0x5bd1e995;
+	const int r = 24;
+
+	int i = 0;
+
+	// Initialize the hash to a 'random' value
+
+	unsigned int h = 13;
+
+	// Mix 4 bytes at a time into the hash
+
+	while(key[0] && key[1] && key[2] && key[3])
+	{
+		unsigned int k = *(unsigned int *)key;
+
+		k *= m; 
+		k ^= k >> r; 
+		k *= m; 
+		
+		h *= m; 
+		h ^= k;
+
+		key += 4;
+	}
+	
+	// Handle the last few bytes of the input array
+	while(i < 24 && *key) {
+	  h ^= *key << i;
+	  i += 8;
+	  key++;
+	}
+	h *= m;
+
+	// Do a few final mixes of the hash to ensure the last few
+	// bytes are well-incorporated.
+
+	h ^= h >> 13;
+	h *= m;
+	h ^= h >> 15;
+
+	return h;
+} 
+
+
 /*! @function
   @abstract     Another interface to const char* hash function
   @param  key   Pointer to a null terminated string [const char*]
   @return       The hash value [khint_t]
  */
-#define kh_str_hash_func(key) __ac_X31_hash_string(key)
+//#define kh_str_hash_func(key) __ac_X31_hash_string(key)
+#define kh_str_hash_func(key) __ac_MURMUR_hash_string(key)
+//#define kh_str_hash_func(key) __ac_FNV1a_hash_string(key)
 /*! @function
   @abstract     Const char* comparison function
  */

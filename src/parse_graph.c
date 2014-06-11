@@ -27,13 +27,11 @@ static inline int update_trie(rgraph *graph, raptor_term* node) {
     unsigned char* uri = raptor_uri_as_string(node->value.uri);
 
 #ifdef USE_THREADS
-    pthread_rwlock_rdlock(&graph->mutex_v);
-#endif
-
+    // custom version of kh_get using a fine-grained read-lock on the
+    // lock passed as last argument
+    k = kh_pget_uris(graph->uris, uri, &graph->mutex_v);
+#else
     k = kh_get(uris, graph->uris, uri);
-
-#ifdef USE_THREADS
-    pthread_rwlock_unlock(&graph->mutex_v);
 #endif
 
     // uri not found
@@ -74,10 +72,10 @@ static inline int update_trie(rgraph *graph, raptor_term* node) {
  */
 static inline void update_graph(graph_data *data) {
   // commit batch of edges to graph
-  if(igraph_vector_size(data->edges) >= BUFSIZE) {
-
 #ifdef USE_THREADS
-    pthread_mutex_lock(&data->graph->mutex_g);
+  if(igraph_vector_size(data->edges) >= BUFSIZE && pthread_mutex_trylock(&data->graph->mutex_g) == 0) {
+#else
+  if(igraph_vector_size(data->edges) >= BUFSIZE) {
 #endif
 
     // check if we need to enlarge the graph

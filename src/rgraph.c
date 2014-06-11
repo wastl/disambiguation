@@ -9,7 +9,7 @@ void init_rgraph(rgraph *graph) {
 
   graph->uris  = kh_init(uris);
   graph->graph = malloc(sizeof(igraph_t));
-  graph->vertices = malloc(VINC * sizeof(char*));
+  graph->vertices = malloc(2 * sizeof(char*));
   graph->labels = malloc(sizeof(igraph_vector_t));
   graph->weights = malloc(sizeof(igraph_vector_t));
   graph->prefixes = NULL;

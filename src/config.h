@@ -7,14 +7,14 @@
  * Vector increment. Enlarge the array of vertices by this amount of
  * pointers when needed
  */
-#define VINC 10000
+#define VINC 50000
 
 /**
  * Buffer size for edge buffer before adding parsed edges to the
  * graph. Larger values mean more efficient graph extension, lower
  * values more efficient space usage.
  */
-#define BUFSIZE 10000
+#define BUFSIZE 200000
 
 
 #define NUM_THREADS 4
