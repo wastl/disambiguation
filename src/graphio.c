@@ -43,17 +43,37 @@ void dump_graph(rgraph *graph, const char* file_prefix) {
  * Dump the trie structure into a dumpfile as CSV of the form id,uri
  */
 void dump_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE* labelfile, FILE* weightsfile) {
-  int i, v;
+  int i, v, eid, from, to;
   double w;
   khiter_t k;
   const char* key;
+
+  igraph_es_t edge_s;
+  igraph_eit_t edge_it;
+
 
   printf("- dumping vertice data ...\n");
   kh_foreach(graph->uris,key,v, fprintf(verticefile,"%d,%s\n",v, key) )
 
 
   printf("- dumping edge data ...\n");
-  igraph_write_graph_edgelist(graph->graph, graphfile);
+
+  igraph_es_all(&edge_s, IGRAPH_EDGEORDER_ID);
+  igraph_eit_create(graph->graph, edge_s, &edge_it);
+
+  while(!IGRAPH_EIT_END(edge_it)) {
+    eid = IGRAPH_EIT_GET(edge_it);
+    
+    igraph_edge(graph->graph, eid, &from, &to);
+    fwrite(&from, sizeof(int), 1, graphfile);
+    fwrite(&to,   sizeof(int), 1, graphfile);
+    
+    IGRAPH_EIT_NEXT(edge_it);
+  }
+  fflush(graphfile);
+  
+  igraph_eit_destroy(&edge_it);
+
 
   printf("- dumping label data ...\n");
   for(i=0; i<igraph_ecount(graph->graph); i++) {
@@ -143,6 +163,10 @@ void restore_vertice_data(rgraph *graph, FILE* verticefile) {
 	graph->num_vertices++;
       }
     }
+    
+    // set number of vertices in graph
+    igraph_add_vertices(graph->graph, graph->num_vertices, 0);
+
     // restore ids by using a callback
     graph->vertices = realloc(graph->vertices, (graph->num_vertices / VINC + 1) * VINC * sizeof(char*));
     kh_foreach(graph->uris, uri, id, graph->vertices[id] = uri )  
@@ -158,6 +182,31 @@ void restore_vertice_data(rgraph *graph, FILE* verticefile) {
 }
 
 
+void restore_edge_data(rgraph *graph, FILE *edgefile) {
+  int id;
+  igraph_vector_t edges;
+  igraph_vector_init(&edges,0);
+
+  if(edgefile) {
+    printf("- restoring edge data ... ");
+    fflush(stdout);
+
+    while( fread(&id, sizeof(int), 1, edgefile) > 0) {
+      igraph_vector_push_back(&edges,id);
+    }
+
+    igraph_add_edges(graph->graph, &edges, 0);
+
+    printf("%ld edges!\n",igraph_ecount(graph->graph));
+  } else {
+    printf("- not restoring edge data, file does not exist!\n");
+  }
+
+
+  igraph_vector_destroy(&edges);
+}
+
+
 /**
  * Restore the trie structure from a dumpfile as CSV of the form id,uri
  */
@@ -167,15 +216,7 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
   double d;
 
   restore_vertice_data(graph, verticefile);
-
-  if(graphfile) {
-    printf("- restoring edge data ... ");
-    fflush(stdout);
-    igraph_read_graph_edgelist(graph->graph, graphfile, 0, GRAPH_MODE);
-    printf("%d edges!\n",igraph_ecount(graph->graph));
-  } else {
-    printf("- not restoring edge data, file does not exist!\n");
-  }
+  restore_edge_data(graph,graphfile);
 
   if(labelfile) {
     printf("- restoring label data ... ");
@@ -184,7 +225,7 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
     while( fread(&id, sizeof(int), 1, labelfile) > 0) {
       igraph_vector_push_back(graph->labels,id);
     }
-    printf("%d labels!\n",igraph_vector_size(graph->labels));
+    printf("%ld labels!\n",igraph_vector_size(graph->labels));
   } else {
     printf("- not restoring label data, file does not exist!\n");
   }
@@ -196,7 +237,7 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
     while( fread(&d, sizeof(double), 1, weightsfile) > 0) {
       igraph_vector_push_back(graph->weights,d);
     }
-    printf("%d weights!\n",igraph_vector_size(graph->weights));
+    printf("%ld weights!\n",igraph_vector_size(graph->weights));
   } else {
     printf("- not restoring weight data, file does not exist!\n");
   }

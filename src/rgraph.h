@@ -38,7 +38,7 @@ typedef struct rgraph {
 /**
  * Initialise an empty relatedness graph, ready for being updated.
  */
-void init_rgraph(rgraph *graph);
+void init_rgraph(rgraph *graph, int reserve_vertices, int reserve_edges);
 
 /**
  * Destroy all resources claimed by a relatedness graph

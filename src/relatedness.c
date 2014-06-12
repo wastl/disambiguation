@@ -15,6 +15,21 @@ void usage(char *cmd) {
   exit(1);
 }
 
+
+void print_path(rgraph *g, igraph_vector_t *edges) {
+  int i, from, to, eid;
+  for(i=0; i<igraph_vector_size(edges); i++) {
+    eid = igraph_vector_e(edges,i);
+    igraph_edge(g->graph, eid, &from, &to);
+
+    const char *s = g->vertices[from];
+    const char *p = g->vertices[(int)igraph_vector_e(g->labels,eid)];
+    const char *o = g->vertices[to];
+
+    printf("%s --- %s --> %s\n", s, p, o);
+  }
+}
+
 /**
  * Compute relatedness by finding the shortest path between two vertices.
  */
@@ -41,12 +56,11 @@ double relatedness(rgraph* g, const char* from, const char* to) {
 
   int i;
   for(i=0; i<igraph_vector_size(&edges); i++) {
-    printf("%s ", g->vertices[(int)igraph_vector_e(g->labels,igraph_vector_e(&edges,i))]);
-    //printf("%d ", (int)igraph_vector_e(g->labels,igraph_vector_e(&edges,i)));
     r += igraph_vector_e(g->weights,igraph_vector_e(&edges,i));
   }
-  printf("\n");
 
+  print_path(g,&edges);
+  
   igraph_vector_destroy(&edges);
 
   return r;
@@ -56,12 +70,20 @@ double relatedness(rgraph* g, const char* from, const char* to) {
 void main(int argc, char** argv) {
   int opt;
   char *ifile = NULL;
+  int reserve_edges = 1<<16;
+  int reserve_vertices = 1<<12;
 
   // read options from command line
-  while( (opt = getopt(argc,argv,"i:")) != -1) {
+  while( (opt = getopt(argc,argv,"i:e:v:")) != -1) {
     switch(opt) {
     case 'i':
       ifile = optarg;
+      break;
+    case 'e':
+      sscanf(optarg,"%ld",&reserve_edges);;
+      break;
+    case 'v':
+      sscanf(optarg,"%ld",&reserve_vertices);;
       break;
     default:
       usage(argv[0]);
@@ -72,7 +94,7 @@ void main(int argc, char** argv) {
     rgraph graph;
 
     // init empty graph
-    init_rgraph(&graph);
+    init_rgraph(&graph, reserve_vertices, reserve_edges);
 
     // first restore existing dump in case -i is given
     restore_graph(&graph,ifile);
@@ -95,10 +117,10 @@ void main(int argc, char** argv) {
       }
       *send = '\0';
 
-      printf("computing relatedness for %s and %s ... ",from,to);
+      printf("computing relatedness for %s and %s ... \n",from,to);
       fflush(stdout);
       r = relatedness(&graph,from,to);
-      printf("%.6f!\n",r);
+      printf("relatedness = %.6f\n",r);
     }
 
     free(line);

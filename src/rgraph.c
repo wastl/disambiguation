@@ -3,7 +3,7 @@
 /**
  * Initialise an empty relatedness graph, ready for being updated.
  */
-void init_rgraph(rgraph *graph) {
+void init_rgraph(rgraph *graph, int reserve_vertices, int reserve_edges) {
   /* turn on attribute handling */
   igraph_i_set_attribute_table(&igraph_cattribute_table);
 
@@ -22,6 +22,11 @@ void init_rgraph(rgraph *graph) {
 
   igraph_vector_init(graph->labels,0);
   igraph_vector_init(graph->weights,0);
+
+  // apply initial sizes
+  kh_resize(uris, graph->uris, reserve_vertices);
+  igraph_vector_reserve(graph->labels, reserve_edges);
+  igraph_vector_reserve(graph->weights, reserve_edges);
 
 #ifdef USE_THREADS
   pthread_rwlock_init(&graph->mutex_v,NULL);
@@ -73,7 +78,7 @@ void destroy_rgraph(rgraph *graph) {
 inline int rgraph_get_vertice_id(rgraph *graph, const char* uri) {
   khiter_t k = kh_get(uris,graph->uris,uri);
   if(k == kh_end(graph->uris)) {
-    return 0;
+    return -1;
   } else {
     return kh_val(graph->uris, k);
   }

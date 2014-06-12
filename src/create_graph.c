@@ -4,6 +4,11 @@
 #include <unistd.h>
 #include <time.h>
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+
 #ifdef USE_THREADS
 #include <pthread.h>
 #include <semaphore.h>
@@ -46,33 +51,48 @@ void usage(char *cmd) {
 
 
 void process_file(void* data) {
+  unsigned char *result;
+  unsigned int len;
   clock_t start, end;
   rdffile *attrs = (rdffile*)data;
-  FILE *f1;
+  int fd;
+
+  struct stat buf;
 
 #ifdef USE_THREADS
   sem_wait(attrs->thread_s);
-#endif
-
+  printf("parsing RDF file %s ... \n", attrs->filename);
+#else
   printf("parsing RDF file %s ... ", attrs->filename);
-#ifdef USE_THREADS
-  printf("\n");
-#endif
   fflush(stdout);
+#endif
 
   start = clock();
-  f1 = fopen(attrs->filename,"r");
-  parse_graph(&graph, f1, attrs->format, "http://localhost/");
-  fclose(f1);
+
+  // mmap file into memory
+  fd = open(attrs->filename,O_RDONLY);
+  if (fd < 0) {
+    fprintf(stderr,"Error: Unable to read dictionary file %s\n",attrs->filename);
+    return;
+  }
+  if (fstat(fd,&buf) < 0) {
+    fprintf(stderr,"Error: Unable to determine file size\n");
+    return;
+  }
+  len = (unsigned int)buf.st_size;
+  result = (unsigned char*)mmap(0,len,PROT_READ,MAP_FILE|MAP_PRIVATE,fd,0);
+
+  parse_graph(&graph, result, len, attrs->format, "http://localhost/");
+
+  munmap(result,len);
+  close(fd);
   end = clock();
 
 #ifdef USE_THREADS
-  printf("RDF file %s ", attrs->filename);
-#endif
-  printf("done (%d ms)!\n", (end-start) * 1000 / CLOCKS_PER_SEC);
-
-#ifdef USE_THREADS
+  printf("RDF file %s done (%d ms)!\n", attrs->filename, (end-start) * 1000 / CLOCKS_PER_SEC);
   sem_post(attrs->thread_s);
+#else
+  printf("done (%d ms)!\n", (end-start) * 1000 / CLOCKS_PER_SEC);
 #endif
 
   free(attrs);
@@ -84,6 +104,8 @@ void main(int argc, char** argv) {
   char *ofile, *ifile;
   char *format = "rdfxml";
   clock_t start, end;
+  int reserve_edges = 1<<16;
+  int reserve_vertices = 1<<12;
 
 #ifdef USE_THREADS
   pthread_t* threads;
@@ -96,7 +118,7 @@ void main(int argc, char** argv) {
 
 
   // read options from command line
-  while( (opt = getopt(argc,argv,"pwf:o:i:")) != -1) {
+  while( (opt = getopt(argc,argv,"pwf:o:i:e:v:")) != -1) {
     switch(opt) {
     case 'o':
       ofile = optarg;
@@ -115,6 +137,12 @@ void main(int argc, char** argv) {
     case 'f':
       format = optarg;
       break;
+    case 'e':
+      sscanf(optarg,"%ld",&reserve_edges);;
+      break;
+    case 'v':
+      sscanf(optarg,"%ld",&reserve_vertices);;
+      break;
     default:
       usage(argv[0]);
     }
@@ -126,18 +154,18 @@ void main(int argc, char** argv) {
   }
 
   // init empty graph
-  init_rgraph(&graph);
+  init_rgraph(&graph, reserve_vertices, reserve_edges);
 
   // first restore existing dump in case -i is given
   if(mode & MODE_RESTORE) { 
     restore_graph(&graph,ifile);
   }
 
-  #ifdef USE_THREADS
+#ifdef USE_THREADS
   int thread_count = (argc-optind);
   threads = malloc ( thread_count * sizeof(pthread_t) );
   i=0;
-  #endif
+#endif
 
   // add the new file(s) to the trie and graph
   for(; optind < argc; optind++) {
@@ -154,11 +182,11 @@ void main(int argc, char** argv) {
 #endif
   }
 
-  #ifdef USE_THREADS
+#ifdef USE_THREADS
   for(i = 0; i<thread_count; i++) {
     pthread_join(threads[i],NULL);
   }
-  #endif
+#endif
 
 
   if(mode & MODE_WEIGHTS) { 

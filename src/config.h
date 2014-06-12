@@ -17,7 +17,20 @@
 #define BUFSIZE 200000
 
 
-#define NUM_THREADS 4
+#define NUM_THREADS 8
+
+/**
+ * Initially reserve this amount of room for vertices; higher values
+ * consume more memory but give better performance 
+ */
+#define RESERVE_VERTICES 1<<20
+
+
+/**
+ * Initially reserve this amount of room for edges; higher values
+ * consume more memory but give better performance 
+ */
+#define RESERVE_EDGES 1<<24
 
 
 //#define GRAPH_MODE IGRAPH_UNDIRECTED
