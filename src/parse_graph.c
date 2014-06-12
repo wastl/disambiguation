@@ -22,22 +22,21 @@ typedef struct graph_data {
  */
 static inline int update_trie(rgraph *graph, raptor_term* node) {
   if(node->type == RAPTOR_TERM_TYPE_URI) {    
-    int err;
+    int err, data;
     khiter_t k;
     unsigned char* uri = raptor_uri_as_string(node->value.uri);
 
 #ifdef USE_THREADS
-    // custom version of kh_get using a fine-grained read-lock on the
-    // lock passed as last argument
-    k = kh_pget_uris(graph->uris, uri, &graph->mutex_v);
-#else
-    k = kh_get(uris, graph->uris, uri);
+    pthread_rwlock_rdlock(&graph->mutex_v);
 #endif
+    k = kh_get(uris, graph->uris, uri);
 
     // uri not found
     if(k == kh_end(graph->uris)) {
+#ifdef USE_THREADS
+      pthread_rwlock_unlock(&graph->mutex_v);
+#endif
       uri = raptor_uri_to_string(node->value.uri);
-
 #ifdef USE_THREADS
       pthread_rwlock_wrlock(&graph->mutex_v);
 #endif
@@ -53,13 +52,14 @@ static inline int update_trie(rgraph *graph, raptor_term* node) {
       }
       graph->vertices[kh_val(graph->uris, k)] = uri;
       
-#ifdef USE_THREADS
-      pthread_rwlock_unlock(&graph->mutex_v);
-#endif
     }
 
+    data = kh_val(graph->uris, k);
+#ifdef USE_THREADS
+    pthread_rwlock_unlock(&graph->mutex_v);
+#endif
 
-    return kh_val(graph->uris, k);
+    return data;
 
   } else {
     return -1;
