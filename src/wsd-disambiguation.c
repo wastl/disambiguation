@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <ctype.h>
 
 #include "rgraph.h"
 #include "graphio.h"
@@ -18,6 +19,18 @@ void usage(char *cmd) {
   exit(1);
 }
 
+
+void print_results(wsd_term_t *terms, int num_terms) {
+  // one term per line, then candidate URI followed by rank
+  int i, j;
+  for(i = 0; i<num_terms; i++) {
+    printf("term: %s; candidates:", terms[i].term);
+    for(j = 0; j<terms[i].num_candidates; j++) {
+      printf(" %s=%.4f", terms[i].candidates[j].uri, terms[i].candidates[j].rank);
+    }
+    printf("\n");
+  }
+}
 
 
 void main(int argc, char** argv) {
@@ -55,20 +68,70 @@ void main(int argc, char** argv) {
     // read from stdin pairs of vertices and compute relatedness
     char *line    = NULL;
     size_t len    = 0;
-    char *from, *to, *send;
+    char *ptr;
+    wsd_term_t *terms;
+    char **candidates;
+    int num_terms = 0, num_candidates = 0;
     double r;
+    int i, j;
 
     printf("> ");
     fflush(stdout);
     while((getline(&line,&len,stdin) != -1)) {
-      // TODO: parser
+      // add a new term per line
+      num_candidates = 0;
+
+      // find all candidates, starting with the URI after the first
+      // blank
+      ptr = line;
+      while(*ptr) {
+	ptr++;
+	while(isspace(*ptr) && *ptr) {
+	  // erase all space characters and replace them with
+	  // end-of-string markers
+	  *(ptr++) = '\0';
+	  if(!isspace(*ptr) && *ptr) {
+	    candidates = realloc( candidates, (++num_candidates) * sizeof(char*));
+	    candidates[num_candidates-1] = ptr;
+	  }
+	}
+      }
+      
+      // create new term entry
+      terms = realloc(terms, ++num_terms * sizeof(wsd_term_t));
+      terms[num_terms-1].term = strdup(line); // string now terminated at first space
+      terms[num_terms-1].num_candidates = num_candidates;
+      terms[num_terms-1].candidates = malloc( num_candidates * sizeof(wsd_candidate_t) );
+      for(i = 0; i<num_candidates; i++) {
+	terms[num_terms-1].candidates[i].uri = strdup(candidates[i]);
+      }
+
+      if(strcmp("\n",line) == 0) {
+	// input finished, start calculation and print results
+	disambiguation(&graph, terms, num_terms, 5, ALGO_EIGENVECTOR);
+	print_results(terms,num_terms);
+
+	// free all allocated memory (strdup, malloc, realloc)
+	for(i = 0; i<num_terms; i++) {
+	  free(terms[i].term);
+	  for(j=0; j<terms[i].num_candidates; j++) {
+	    free(terms[i].candidates[j].uri);
+	  }
+	  free(terms[i].candidates);
+	}
+	free(terms);
+	num_terms = 0;
+
+	printf("> ");
+	fflush(stdout);	
+      }
     }
 
     free(line);
 
     destroy_rgraph(&graph);
-  } else {
+    } else {
     usage(argv[0]);
-  }
+    }
 
 }

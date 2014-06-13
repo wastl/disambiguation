@@ -100,7 +100,7 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_wsd_disambiguation_OBJECTS = wsd-relatedness.$(OBJEXT) \
+am_wsd_disambiguation_OBJECTS = wsd-disambiguation.$(OBJEXT) \
 	disambiguation.$(OBJEXT) relatedness.$(OBJEXT) \
 	graphio.$(OBJEXT) rgraph.$(OBJEXT)
 wsd_disambiguation_OBJECTS = $(am_wsd_disambiguation_OBJECTS)
@@ -294,7 +294,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 wsd_create_SOURCES = wsd-create.c graphio.c parse_graph.c rgraph.c weights_combi.c
 wsd_relatedness_SOURCES = wsd-relatedness.c relatedness.c graphio.c rgraph.c
-wsd_disambiguation_SOURCES = wsd-relatedness.c disambiguation.c relatedness.c graphio.c rgraph.c
+wsd_disambiguation_SOURCES = wsd-disambiguation.c disambiguation.c relatedness.c graphio.c rgraph.c
 wsd_query_SOURCES = wsd-query.c graphio.c rgraph.c
 wsd_create_LDADD = @rdflibs@ @threads@
 wsd_relatedness_LDADD = @threads@
@@ -413,6 +413,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weights_combi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-create.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-disambiguation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-query.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-relatedness.Po@am__quote@
 

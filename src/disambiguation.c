@@ -6,7 +6,7 @@
 #include "disambiguation.h"
 
 
-void disambiguation(rgraph *graph, wsd_term_t *terms, int num_terms, int max_dist) {
+void disambiguation(rgraph *graph, wsd_term_t *terms, int num_terms, int max_dist, wsd_centrality_algorithm algorithm) {
   int i, j, t, s;
 
   int num_vertices=0;     // how many vertices in total
@@ -31,7 +31,7 @@ void disambiguation(rgraph *graph, wsd_term_t *terms, int num_terms, int max_dis
   igraph_vector_init(&wsd_weights,0);
   
 
-  // build dependency graph (see http://www.cse.unt.edu/~rada/papers/sinha.ieee07.pdf)
+  // 1. build dependency graph (see http://www.cse.unt.edu/~rada/papers/sinha.ieee07.pdf)
 
   // TODO: this part can easily be parallelized, especially computing
   // edge weights could benefit!
@@ -47,7 +47,43 @@ void disambiguation(rgraph *graph, wsd_term_t *terms, int num_terms, int max_dis
     }
   }
 
+  // 2. compute centrality for each vertex and write back to
+  // candidates
+  igraph_vector_t wsd_centralities;
+  igraph_vector_init(&wsd_centralities,0);
 
+  igraph_arpack_options_t options;
+  igraph_arpack_options_init(&options);
+
+  igraph_vs_t vertice_s;
+  igraph_vs_all(&vertice_s);
+
+  // we support a number of different algorithms through igraph ...
+  switch(algorithm) {
+  case ALGO_PAGERANK:
+    // igraph version <0.7 and >= 0.5
+    igraph_pagerank(&wsd_graph, &wsd_centralities, 0, igraph_vss_all(), 0, 0.85, &wsd_weights, 0);
+    break;
+  case ALGO_CLOSENESS:
+    igraph_closeness(&wsd_graph, &wsd_centralities, igraph_vss_all(), IGRAPH_ALL, &wsd_weights);
+    break;
+  case ALGO_BETWEENNESS:
+    igraph_betweenness(&wsd_graph, &wsd_centralities, igraph_vss_all(), 0, &wsd_weights, 0);
+    break;
+  case ALGO_EIGENVECTOR:
+  default:
+    igraph_eigenvector_centrality(&wsd_graph, &wsd_centralities, NULL, 0, 1, &wsd_weights, &options);
+    break;
+  }  
+
+  for(i = 0; i<N; i++) {
+    for(j = 0; j<N_w(i); j++) {
+      terms[i].candidates[j].rank = igraph_vector_e(&wsd_centralities,get_node_id(i,j));
+    }
+  }
+
+
+  igraph_vector_destroy(&wsd_centralities);
   igraph_vector_destroy(&wsd_weights);
   igraph_destroy(&wsd_graph);
 }

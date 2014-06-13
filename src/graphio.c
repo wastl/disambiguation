@@ -219,6 +219,14 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
   double d;
 
   struct stat buf;
+  
+  // check file sizes to estimate/determine how many edges and
+  // vertices we have to expect, and reserve an appropriate number of
+  // slots in advance
+  if (fstat(fileno(graphfile),&buf) >= 0) {
+    rgraph_reserve_edges(graph,(unsigned int)buf.st_size/8);
+  }
+
 
   restore_vertice_data(graph, verticefile);
   restore_edge_data(graph,graphfile);
