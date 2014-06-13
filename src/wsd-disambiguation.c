@@ -69,8 +69,8 @@ void main(int argc, char** argv) {
     char *line    = NULL;
     size_t len    = 0;
     char *ptr;
-    wsd_term_t *terms;
-    char **candidates;
+    wsd_term_t *terms = 0;
+    char **candidates = 0;
     int num_terms = 0, num_candidates = 0;
     double r;
     int i, j;
@@ -78,36 +78,11 @@ void main(int argc, char** argv) {
     printf("> ");
     fflush(stdout);
     while((getline(&line,&len,stdin) != -1)) {
-      // add a new term per line
-      num_candidates = 0;
-
-      // find all candidates, starting with the URI after the first
-      // blank
-      ptr = line;
-      while(*ptr) {
-	ptr++;
-	while(isspace(*ptr) && *ptr) {
-	  // erase all space characters and replace them with
-	  // end-of-string markers
-	  *(ptr++) = '\0';
-	  if(!isspace(*ptr) && *ptr) {
-	    candidates = realloc( candidates, (++num_candidates) * sizeof(char*));
-	    candidates[num_candidates-1] = ptr;
-	  }
-	}
-      }
-      
-      // create new term entry
-      terms = realloc(terms, ++num_terms * sizeof(wsd_term_t));
-      terms[num_terms-1].term = strdup(line); // string now terminated at first space
-      terms[num_terms-1].num_candidates = num_candidates;
-      terms[num_terms-1].candidates = malloc( num_candidates * sizeof(wsd_candidate_t) );
-      for(i = 0; i<num_candidates; i++) {
-	terms[num_terms-1].candidates[i].uri = strdup(candidates[i]);
-      }
 
       if(strcmp("\n",line) == 0) {
 	// input finished, start calculation and print results
+	printf("computing disambiguation values ...\n");
+
 	disambiguation(&graph, terms, num_terms, 5, ALGO_EIGENVECTOR);
 	print_results(terms,num_terms);
 
@@ -124,9 +99,38 @@ void main(int argc, char** argv) {
 
 	printf("> ");
 	fflush(stdout);	
+      } else {
+	// add a new term per line
+	num_candidates = 0;
+
+	// find all candidates, starting with the URI after the first
+	// blank
+	ptr = line;
+	while(*ptr) {
+	  ptr++;
+	  while(isspace(*ptr) && *ptr) {
+	    // erase all space characters and replace them with
+	    // end-of-string markers
+	    *(ptr++) = '\0';
+	    if(!isspace(*ptr) && *ptr) {
+	      candidates = realloc( candidates, (++num_candidates) * sizeof(char*));
+	      candidates[num_candidates-1] = ptr;
+	    }
+	  }
+	}
+      
+	// create new term entry
+	terms = realloc(terms, ++num_terms * sizeof(wsd_term_t));
+	terms[num_terms-1].term = strdup(line); // string now terminated at first space
+	terms[num_terms-1].num_candidates = num_candidates;
+	terms[num_terms-1].candidates = malloc( num_candidates * sizeof(wsd_candidate_t) );
+	for(i = 0; i<num_candidates; i++) {
+	  terms[num_terms-1].candidates[i].uri = strdup(candidates[i]);
+	}
       }
     }
 
+    free(candidates);
     free(line);
 
     destroy_rgraph(&graph);
