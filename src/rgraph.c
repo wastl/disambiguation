@@ -24,14 +24,39 @@ void init_rgraph(rgraph *graph, int reserve_vertices, int reserve_edges) {
   igraph_vector_init(graph->weights,0);
 
   // apply initial sizes
-  kh_resize(uris, graph->uris, reserve_vertices);
-  igraph_vector_reserve(graph->labels, reserve_edges);
-  igraph_vector_reserve(graph->weights, reserve_edges);
+  rgraph_reserve_vertices(graph,reserve_vertices);
+  rgraph_reserve_edges(graph,reserve_edges);
 
 #ifdef USE_THREADS
   pthread_rwlock_init(&graph->mutex_v,NULL);
   pthread_mutex_init(&graph->mutex_g,NULL);
 #endif
+}
+
+
+void rgraph_reserve_vertices(rgraph *graph, int reserve_vertices) {
+  if(reserve_vertices < graph->num_vertices) {
+    fprintf(stderr,"cannot reserve less vertices than those already present");
+  } else {
+    kh_resize(uris, graph->uris, reserve_vertices);
+    igraph_vector_reserve(&graph->graph->os,   reserve_vertices + 1);
+    igraph_vector_reserve(&graph->graph->is,   reserve_vertices + 1);
+  }
+}
+
+
+void rgraph_reserve_edges(rgraph *graph, int reserve_edges) {
+  if(reserve_edges < igraph_ecount(graph->graph)) {
+    fprintf(stderr,"cannot reserve less edges than those already present");
+  } else {
+    igraph_vector_reserve(graph->labels, reserve_edges);
+    igraph_vector_reserve(graph->weights, reserve_edges);
+
+    igraph_vector_reserve(&graph->graph->from, reserve_edges);
+    igraph_vector_reserve(&graph->graph->to,   reserve_edges);
+    igraph_vector_reserve(&graph->graph->oi,   reserve_edges);
+    igraph_vector_reserve(&graph->graph->ii,   reserve_edges);
+  }
 }
 
 

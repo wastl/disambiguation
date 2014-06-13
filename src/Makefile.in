@@ -79,7 +79,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = wsd-create$(EXEEXT) wsd-relatedness$(EXEEXT) \
-	wsd-query$(EXEEXT)
+	wsd-query$(EXEEXT) wsd-disambiguation$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -100,12 +100,17 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_wsd_disambiguation_OBJECTS = wsd-relatedness.$(OBJEXT) \
+	disambiguation.$(OBJEXT) relatedness.$(OBJEXT) \
+	graphio.$(OBJEXT) rgraph.$(OBJEXT)
+wsd_disambiguation_OBJECTS = $(am_wsd_disambiguation_OBJECTS)
+wsd_disambiguation_DEPENDENCIES =
 am_wsd_query_OBJECTS = wsd-query.$(OBJEXT) graphio.$(OBJEXT) \
 	rgraph.$(OBJEXT)
 wsd_query_OBJECTS = $(am_wsd_query_OBJECTS)
 wsd_query_DEPENDENCIES =
 am_wsd_relatedness_OBJECTS = wsd-relatedness.$(OBJEXT) \
-	graphio.$(OBJEXT) rgraph.$(OBJEXT)
+	relatedness.$(OBJEXT) graphio.$(OBJEXT) rgraph.$(OBJEXT)
 wsd_relatedness_OBJECTS = $(am_wsd_relatedness_OBJECTS)
 wsd_relatedness_DEPENDENCIES =
 AM_V_P = $(am__v_P_@AM_V@)
@@ -142,10 +147,10 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(wsd_create_SOURCES) $(wsd_query_SOURCES) \
-	$(wsd_relatedness_SOURCES)
-DIST_SOURCES = $(wsd_create_SOURCES) $(wsd_query_SOURCES) \
-	$(wsd_relatedness_SOURCES)
+SOURCES = $(wsd_create_SOURCES) $(wsd_disambiguation_SOURCES) \
+	$(wsd_query_SOURCES) $(wsd_relatedness_SOURCES)
+DIST_SOURCES = $(wsd_create_SOURCES) $(wsd_disambiguation_SOURCES) \
+	$(wsd_query_SOURCES) $(wsd_relatedness_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -288,10 +293,12 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 wsd_create_SOURCES = wsd-create.c graphio.c parse_graph.c rgraph.c weights_combi.c
-wsd_relatedness_SOURCES = wsd-relatedness.c graphio.c rgraph.c
+wsd_relatedness_SOURCES = wsd-relatedness.c relatedness.c graphio.c rgraph.c
+wsd_disambiguation_SOURCES = wsd-relatedness.c disambiguation.c relatedness.c graphio.c rgraph.c
 wsd_query_SOURCES = wsd-query.c graphio.c rgraph.c
 wsd_create_LDADD = @rdflibs@ @threads@
 wsd_relatedness_LDADD = @threads@
+wsd_disambiguation_LDADD = @threads@
 wsd_query_LDADD = @threads@
 all: all-am
 
@@ -381,6 +388,10 @@ wsd-create$(EXEEXT): $(wsd_create_OBJECTS) $(wsd_create_DEPENDENCIES) $(EXTRA_ws
 	@rm -f wsd-create$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(wsd_create_OBJECTS) $(wsd_create_LDADD) $(LIBS)
 
+wsd-disambiguation$(EXEEXT): $(wsd_disambiguation_OBJECTS) $(wsd_disambiguation_DEPENDENCIES) $(EXTRA_wsd_disambiguation_DEPENDENCIES) 
+	@rm -f wsd-disambiguation$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(wsd_disambiguation_OBJECTS) $(wsd_disambiguation_LDADD) $(LIBS)
+
 wsd-query$(EXEEXT): $(wsd_query_OBJECTS) $(wsd_query_DEPENDENCIES) $(EXTRA_wsd_query_DEPENDENCIES) 
 	@rm -f wsd-query$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(wsd_query_OBJECTS) $(wsd_query_LDADD) $(LIBS)
@@ -395,8 +406,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/disambiguation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_graph.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relatedness.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weights_combi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-create.Po@am__quote@

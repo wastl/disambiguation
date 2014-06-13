@@ -157,7 +157,6 @@ void main(int argc, char** argv) {
 #ifdef USE_THREADS
     case 't':
       sscanf(optarg,"%d",&num_threads);
-      sem_init(&thread_s,0,num_threads);
       break;
 #endif
     default:
@@ -169,6 +168,10 @@ void main(int argc, char** argv) {
     usage(argv[0]);
     exit(1);
   }
+
+#ifdef USE_THREADS
+  sem_init(&thread_s,0,num_threads);
+#endif
 
 
 

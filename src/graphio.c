@@ -1,4 +1,7 @@
 #include <string.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "graphio.h"
 
@@ -214,6 +217,8 @@ void restore_graph_files(rgraph *graph, FILE *verticefile, FILE *graphfile, FILE
   int  id;
   int i;
   double d;
+
+  struct stat buf;
 
   restore_vertice_data(graph, verticefile);
   restore_edge_data(graph,graphfile);

@@ -1,14 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
-#include <float.h>
 #include <unistd.h>
 #include <time.h>
 
 #include "rgraph.h"
 #include "graphio.h"
-
+#include "relatedness.h"
 
 void usage(char *cmd) {
   printf("Usage: %s -i fileprefix [-e edges] [-v vertices]\n", cmd);
@@ -34,48 +32,11 @@ void print_path(rgraph *g, igraph_vector_t *edges) {
   }
 }
 
-/**
- * Compute relatedness by finding the shortest path between two vertices.
- */
-double relatedness(rgraph* g, const char* from, const char* to) {
-  int fromid = rgraph_get_vertice_id(g,from);
-  int toid   = rgraph_get_vertice_id(g,to);
-
-  if(!fromid || !toid) {
-    if (!fromid) {
-      printf("<%s> not found in the graph!\n", from);
-    }
-    if (!toid) {
-      printf("<%s> not found in the graph!\n", to);
-    }
-    return DBL_MAX;
-  }
-
-  // holds the edges of the shortest path
-  igraph_vector_t edges;
-  igraph_vector_init(&edges,0);
-  igraph_get_shortest_path_dijkstra(g->graph, NULL, &edges, fromid, toid, g->weights, IGRAPH_ALL);
-
-  double r = 0.0;
-
-  int i;
-  for(i=0; i<igraph_vector_size(&edges); i++) {
-    r += igraph_vector_e(g->weights,igraph_vector_e(&edges,i));
-  }
-
-  print_path(g,&edges);
-  
-  igraph_vector_destroy(&edges);
-
-  return r;
-}
-
-
 void main(int argc, char** argv) {
   int opt;
   char *ifile = NULL;
-  int reserve_edges = 1<<16;
-  int reserve_vertices = 1<<12;
+  long int reserve_edges = 1<<16;
+  long int reserve_vertices = 1<<12;
 
   // read options from command line
   while( (opt = getopt(argc,argv,"i:e:v:")) != -1) {
@@ -126,7 +87,12 @@ void main(int argc, char** argv) {
 
       printf("computing relatedness for %s and %s ... \n",from,to);
       fflush(stdout);
-      r = relatedness(&graph,from,to);
+      igraph_vector_t edges;
+      igraph_vector_init(&edges,0);
+      r = relatedness(&graph,from,to,&edges);
+      print_path(&graph,&edges);
+      igraph_vector_destroy(&edges);
+
       printf("relatedness = %.6f\n",r);
 
       printf("> ");

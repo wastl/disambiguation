@@ -46,6 +46,21 @@ void init_rgraph(rgraph *graph, int reserve_vertices, int reserve_edges);
 void destroy_rgraph(rgraph *graph);
 
 /**
+ * Preallocate memory for the given number of vertices. Can be used to
+ * avoid excessive reallocation during graph construction in case the
+ * number of vertices can be estimated in advance.
+ */
+void rgraph_reserve_vertices(rgraph *graph, int reserve_vertices);
+
+/**
+ * Preallocate memory for the given number of edges. Can be used to
+ * avoid excessive reallocation during graph construction in case the
+ * number of vertices can be estimated in advance.
+ */
+void rgraph_reserve_edges(rgraph *graph, int reserve_edges);
+
+
+/**
  * lookup the vertice URI of the vertice with the given ID. NUL in case the ID is smaller 0 or
  * larger than num_vertices
  */
