@@ -11,7 +11,11 @@
 
 
 void usage(char *cmd) {
-  printf("Usage: %s -i restorefile\n", cmd);
+  printf("Usage: %s -i fileprefix [-e edges] [-v vertices]\n", cmd);
+  printf("Options:\n");
+  printf("  -i fileprefix    load the data from the files with the given prefix (e.g. /data/dbpedia)\n");
+  printf("  -e edges         hint on the number of edges in the graph (can improve startup performance)\n");
+  printf("  -v vertices      hint on the number of vertices in the graph (improve startup performance)\n");
   exit(1);
 }
 
