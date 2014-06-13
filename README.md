@@ -67,4 +67,18 @@ graph using the weights computed by create_graph.
       -v vertices      hint on the number of vertices in the graph (improve startup performance)
 
 Once the tool has started up (can take some seconds depending on graph size), it accepts pairs of
-URIs on standard input, one pair per line, separated by a simple space (" ").
+concept URIs on standard input, one pair per line, separated by a simple space (" "). For each pair,
+it will calculate the relatedness (smaller values are better) and outputs information about which
+path it considered the shortest path between the two concepts.
+
+The following call loads a previously created dump file from disk and then accepts input from stdin:
+
+    ./bin/relatedness -i /data/dumps/dbpedia
+
+A typical interaction with the tool looks as follows:
+
+    http://dbpedia.org/resource/Berlin http://dbpedia.org/resource/Germany
+>    computing relatedness for http://dbpedia.org/resource/Berlin and http://dbpedia.org/resource/Germany ... 
+>    http://dbpedia.org/resource/Germany --- http://dbpedia.org/ontology/capital --> http://dbpedia.org/resource/Berlin
+>    relatedness = 0.053227
+
