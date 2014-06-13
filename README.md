@@ -1,4 +1,4 @@
-= MICO Disambiguation Tools =
+# MICO Disambiguation Tools
 
 This repository contains a collection of tools for disambiguation of entities in large RDF graph
 structures as found in the Linked Data Cloud. The general Linked Data disambiguation problem is as
@@ -19,7 +19,7 @@ be very large. The implementation is therefore in plain C instead of Java.
 
 The repository currently contains the following tools:
 
-== Training (create_graph) ==
+## Training (create_graph) 
 
 The training tool is used to load a collection of RDF files, create an in-memory representation
 of the graph, and compute edge weights for each edge in the graph. The output is written into a set
@@ -54,7 +54,7 @@ Note that currently, node IDs are represented as 32bit integers, so the maximum 
 can be handled by the system is 4 billion.
 
 
-== Relatedness Computation (relatedness) ==
+## Relatedness Computation (relatedness) 
 
 The relatedness tool is used to determine the relatedness between two concepts. It loads a binary
 graph representation created by create_graph from harddisk and then computes shortest paths in the
