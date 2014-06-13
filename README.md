@@ -19,14 +19,14 @@ be very large. The implementation is therefore in plain C instead of Java.
 
 The repository currently contains the following tools:
 
-## Training (create_graph) 
+## Training (wsd-create) 
 
 The training tool is used to load a collection of RDF files, create an in-memory representation
 of the graph, and compute edge weights for each edge in the graph. The output is written into a set
 of binary files that can be used by the other tools for more efficiently working with the data. The
 tool can be called from command line using the following options:
 
-    Usage: create_graph [-f format] [-o outprefix] [-i inprefix] [-p] [-w] [-e num] [-v num] [-t threads] rdffiles...
+    Usage: wsd-create [-f format] [-o outprefix] [-i inprefix] [-p] [-w] [-e num] [-v num] [-t threads] rdffiles...
     Options:
      -f format       the format of the RDF files (turtle,rdfxml,ntriples,trig,json)
      -o outprefix    prefix of the output files to write the result to (e.g. ~/dumps/dbpedia)
@@ -41,7 +41,7 @@ tool can be called from command line using the following options:
 The following call of the training tool would load a DBPedia dump with 8 threads in parallel,
 compute edge weights, and write the result to a dump file:
 
-    ./bin/create_graph -f turtle -o /data/dumps/dbpedia -w -p /data/dbpedia/*.ttl
+    ./bin/wsd-create -f turtle -o /data/dumps/dbpedia -w -p /data/dbpedia/*.ttl
 
 The graph data will then be stored in the following files in /data/dumps:
 
@@ -54,13 +54,13 @@ Note that currently, node IDs are represented as 32bit integers, so the maximum 
 can be handled by the system is 4 billion.
 
 
-## Relatedness Computation (relatedness) 
+## Relatedness Computation (wsd-relatedness) 
 
 The relatedness tool is used to determine the relatedness between two concepts. It loads a binary
 graph representation created by create_graph from harddisk and then computes shortest paths in the
 graph using the weights computed by create_graph.
 
-    Usage: %s -i fileprefix [-e edges] [-v vertices]\n", cmd);
+    Usage: wsd-relatedness -i fileprefix [-e edges] [-v vertices]\n", cmd);
     Options:
       -i fileprefix    load the data from the files with the given prefix (e.g. /data/dbpedia)
       -e edges         hint on the number of edges in the graph (can improve startup performance)
@@ -73,7 +73,7 @@ path it considered the shortest path between the two concepts.
 
 The following call loads a previously created dump file from disk and then accepts input from stdin:
 
-    ./bin/relatedness -i /data/dumps/dbpedia
+    ./bin/wsd-relatedness -i /data/dumps/dbpedia
 
 A typical interaction with the tool looks as follows:
 
