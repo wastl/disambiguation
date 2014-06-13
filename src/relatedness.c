@@ -108,6 +108,9 @@ void main(int argc, char** argv) {
     size_t len    = 0;
     char *from, *to, *send;
     double r;
+
+    printf("> ");
+    fflush(stdout);
     while((getline(&line,&len,stdin) != -1)) {
       from = line;
       to   = line;
@@ -125,6 +128,9 @@ void main(int argc, char** argv) {
       fflush(stdout);
       r = relatedness(&graph,from,to);
       printf("relatedness = %.6f\n",r);
+
+      printf("> ");
+      fflush(stdout);
     }
 
     free(line);
