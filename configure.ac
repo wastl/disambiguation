@@ -19,6 +19,11 @@ AC_SUBST(rdflibs)
 AC_CHECK_LIB(m,log, , AC_MSG_ERROR("required math library is missing"))
 AC_CHECK_HEADER(math.h, , AC_MSG_ERROR("required math headers are missing"))
 
+AC_CHECK_LIB(protobuf-c,protobuf_c_message_init, protobuf_libs="-lprotobuf-c", AC_MSG_ERROR("protobuf library is missing"))
+AC_SUBST(protobuf_libs)
+
+AC_PATH_PROG(PROTOC,protoc-c)
+AC_SUBST(PROTOC)
 
 AC_ARG_ENABLE(profiling,AS_HELP_STRING(--enable-profiling,enable GNU gprof profiling support),[
 CFLAGS="$CFLAGS -g -pg"

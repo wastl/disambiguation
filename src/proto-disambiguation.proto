@@ -1,0 +1,17 @@
+message Candidate {
+  required string uri = 1;
+  optional double confidence = 2;
+}
+
+message Entity {
+  required string text = 1;
+  repeated Candidate candidates = 2;
+}
+
+message DisambiguationRequest {
+  repeated Entity entities = 1;
+}
+
+message DisambiguationResult {
+  repeated Entity entities = 1;
+}

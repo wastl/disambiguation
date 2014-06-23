@@ -1,10 +1,15 @@
+# compile protocol buffers for C
+%.pb-c.c %.pb-c.h: %.proto
+	$(PROTOC) $^ --c_out=$(dir $^)
+
+
 bin_PROGRAMS = wsd-create wsd-relatedness wsd-query wsd-disambiguation
 wsd_create_SOURCES = wsd-create.c graphio.c parse_graph.c rgraph.c weights_combi.c
 wsd_relatedness_SOURCES  = wsd-relatedness.c relatedness.c graphio.c rgraph.c
-wsd_disambiguation_SOURCES  = wsd-disambiguation.c disambiguation.c relatedness.c graphio.c rgraph.c
+wsd_disambiguation_SOURCES  = proto-disambiguation.pb-c.c wsd-disambiguation.c disambiguation.c relatedness.c graphio.c rgraph.c network.c 
 wsd_query_SOURCES  = wsd-query.c graphio.c rgraph.c
 wsd_create_LDADD = @rdflibs@ @threads@
 wsd_relatedness_LDADD = @threads@
-wsd_disambiguation_LDADD = @threads@
+wsd_disambiguation_LDADD = @threads@ @protobuf_libs@
 wsd_query_LDADD = @threads@
 

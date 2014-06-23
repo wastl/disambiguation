@@ -100,9 +100,10 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_wsd_disambiguation_OBJECTS = wsd-disambiguation.$(OBJEXT) \
-	disambiguation.$(OBJEXT) relatedness.$(OBJEXT) \
-	graphio.$(OBJEXT) rgraph.$(OBJEXT)
+am_wsd_disambiguation_OBJECTS = proto-disambiguation.pb-c.$(OBJEXT) \
+	wsd-disambiguation.$(OBJEXT) disambiguation.$(OBJEXT) \
+	relatedness.$(OBJEXT) graphio.$(OBJEXT) rgraph.$(OBJEXT) \
+	network.$(OBJEXT)
 wsd_disambiguation_OBJECTS = $(am_wsd_disambiguation_OBJECTS)
 wsd_disambiguation_DEPENDENCIES =
 am_wsd_query_OBJECTS = wsd-query.$(OBJEXT) graphio.$(OBJEXT) \
@@ -232,6 +233,7 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PROTOC = @PROTOC@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -281,6 +283,7 @@ oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
+protobuf_libs = @protobuf_libs@
 psdir = @psdir@
 rdflibs = @rdflibs@
 sbindir = @sbindir@
@@ -294,11 +297,11 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 wsd_create_SOURCES = wsd-create.c graphio.c parse_graph.c rgraph.c weights_combi.c
 wsd_relatedness_SOURCES = wsd-relatedness.c relatedness.c graphio.c rgraph.c
-wsd_disambiguation_SOURCES = wsd-disambiguation.c disambiguation.c relatedness.c graphio.c rgraph.c
+wsd_disambiguation_SOURCES = proto-disambiguation.pb-c.c wsd-disambiguation.c disambiguation.c relatedness.c graphio.c rgraph.c network.c 
 wsd_query_SOURCES = wsd-query.c graphio.c rgraph.c
 wsd_create_LDADD = @rdflibs@ @threads@
 wsd_relatedness_LDADD = @threads@
-wsd_disambiguation_LDADD = @threads@
+wsd_disambiguation_LDADD = @threads@ @protobuf_libs@
 wsd_query_LDADD = @threads@
 all: all-am
 
@@ -408,7 +411,9 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/disambiguation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphio.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/network.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_graph.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proto-disambiguation.pb-c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relatedness.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weights_combi.Po@am__quote@
@@ -649,6 +654,10 @@ uninstall-am: uninstall-binPROGRAMS
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS
 
+
+# compile protocol buffers for C
+%.pb-c.c %.pb-c.h: %.proto
+	$(PROTOC) $^ --c_out=$(dir $^)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
