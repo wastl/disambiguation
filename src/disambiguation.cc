@@ -7,6 +7,8 @@ extern "C" {
 }
 
 #include "disambiguation.h"
+#include "RelatednessBase.h"
+#include "RelatednessShortestPath.h"
 
 inline int ipow(int base, int exp)
 {
@@ -52,13 +54,15 @@ void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
 
   std::cout << "building dependency graph...\n";
 
+  RelatednessBase* alg_rel = new RelatednessShortestPath(graph);
+
   // TODO: this part can easily be parallelized, especially computing
   // edge weights could benefit!
   for(i = 0; i < entities_size(); i++) {
     for(j = i+1; j <= i+maxdist() && j < entities_size(); j++) {
       for(t = 0; t < entities(i).candidates_size(); t++) {
 	for(s = 0; s < entities(j).candidates_size(); s++) {
-	  double w = rgraph_shortest_path(graph, get_node_label(i,t), get_node_label(j,s), maxdist());
+	  double w = alg_rel->relatedness(get_node_label(i,t), get_node_label(j,s), maxdist());
 	  if(w < DBL_MAX) {
 	    igraph_add_edge(&wsd_graph,get_node_id(i,t),get_node_id(j,s));
 	    igraph_vector_push_back (&wsd_weights, w);
@@ -67,6 +71,7 @@ void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
       }
     }
   }
+  delete alg_rel;
 
   // 2. compute centrality for each vertex and write back to
   // candidates
@@ -79,10 +84,10 @@ void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
   igraph_vs_t vertice_s;
   igraph_vs_all(&vertice_s);
 
-  std::cout << "computing centrality scores using algorithm " << algorithm() << "...\n";
+  std::cout << "computing centrality scores using algorithm " << centrality() << "...\n";
 
   // we support a number of different algorithms through igraph ...
-  switch(algorithm()) {
+  switch(centrality()) {
   case PAGERANK:
     // igraph version <0.7 and >= 0.5
     igraph_pagerank(&wsd_graph, &wsd_centralities, 0, igraph_vss_all(), 0, 0.85, &wsd_weights, 0);

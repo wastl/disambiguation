@@ -9,14 +9,22 @@ message Entity {
 }
 
 message DisambiguationRequest {
-  enum Algorithm {
+  enum CentralityAlgorithm {
     EIGENVECTOR = 1;
     BETWEENNESS = 2;
     CLOSENESS   = 3;
     PAGERANK    = 4;
   }
 
+  enum RelatednessAlgorithm {
+    SHORTEST_PATH = 1;
+    MAXIMUM_FLOW  = 2;
+    PARTITION     = 3;
+  }
+
+
   repeated Entity entities = 1;  
-  optional Algorithm algorithm = 2;
-  optional int32 maxdist = 3;
+  optional CentralityAlgorithm centrality = 2 [default = EIGENVECTOR];
+  optional RelatednessAlgorithm relatedness = 3 [default = SHORTEST_PATH];
+  optional int32 maxdist = 4;
 }

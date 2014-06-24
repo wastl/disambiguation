@@ -2,36 +2,41 @@
 
 #include "pqueue.h"
 
-#define weight(q,k) q->weights[q->queue[k]]
-#define less(q,k,j) (weight(q,k) > weight(q,j))
+#define weight(q,w,k) w[q[k]]
+#define less(q,w,k,j) (weight(q,w,k) > weight(q,w,j))
 
+#ifdef PROFILING
+#define __PQINLINE__ __attribute__((noinline))
+#else
+#define __PQINLINE__ inline
+#endif
 
-inline void exch(pqueue_t* q, int s, int t) {
-    int tmp = q->queue[s];
-    q->queue[s] = q->queue[t];
-    q->queue[t] = tmp;
+static __PQINLINE__ void exch(int* queue, int* indexes, int s, int t) {
+    int tmp = queue[s];
+    queue[s] = queue[t];
+    queue[t] = tmp;
 
-    if(q->indexes) {
-      q->indexes[q->queue[s]] = s;
-      q->indexes[q->queue[t]] = t;
+    if(indexes) {
+      indexes[queue[s]] = s;
+      indexes[queue[t]] = t;
     }
 }
 
-inline void fixUp(pqueue_t* queue, register int k) {  
-  while(k > 1 && less(queue,k>>1,k)) {
-    exch(queue,k,k>>1);
+static __PQINLINE__ void fixUp(int* queue, int* indexes, double* weights, register int k) {  
+  while(k > 1 && less(queue,weights,k>>1,k)) {
+    exch(queue,indexes,k,k>>1);
     k >>= 1;
   }
 }
 
 
-inline void fixDown(pqueue_t* queue, register int k, int N) {
+static __PQINLINE__ void fixDown(int* queue, int* indexes, double* weights, register int k, int N) {
   register int j;
   while(k<<1 <= N) {
     j = k<<1;
-    if(j < N && less(queue,j,j+1)) j++;
-    if(!less(queue,k,j) ) break;
-    exch(queue,k,j);    
+    if(j < N && less(queue,weights,j,j+1)) j++;
+    if(!less(queue,weights,k,j) ) break;
+    exch(queue,indexes,k,j);    
     k = j;    
   }
 }
@@ -63,7 +68,7 @@ void pq_insert(pqueue_t* queue, int v) {
   if(queue->indexes) {
     queue->indexes[v] = queue->size;
   }
-  fixUp(queue, queue->size);
+  fixUp(queue->queue, queue->indexes, queue->weights, queue->size);
 }
 
 /**
@@ -80,7 +85,7 @@ void pq_decrease(pqueue_t* queue, int v) {
   }
 
   if(i <= queue->size && i>0) {
-    fixUp(queue,i);
+    fixUp(queue->queue, queue->indexes, queue->weights,i);
   }
 }
 
@@ -89,8 +94,8 @@ void pq_decrease(pqueue_t* queue, int v) {
  * Return the first value from the priority queue and reorder according to weights.
  */
 int pq_first(pqueue_t* queue) {
-  exch(queue,1,queue->size);
-  fixDown(queue,1,queue->size-1);
+  exch(queue->queue,queue->indexes,1,queue->size);
+  fixDown(queue->queue, queue->indexes, queue->weights, 1, queue->size-1);
   return queue->queue[queue->size--];
 }
 
@@ -102,6 +107,10 @@ int pq_empty(pqueue_t* queue) {
   return queue->size == 0;
 }
 
+
+void pq_clear(pqueue_t* queue) {
+  queue->size = 0;
+}
 
 void pq_destroy(pqueue_t* queue) {
   free(queue->queue);

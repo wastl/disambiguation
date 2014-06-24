@@ -47,6 +47,12 @@ int pq_first(pqueue_t* queue);
  */
 int pq_empty(pqueue_t* queue);
 
+
+/**
+ * Clear the priority queue (setting size to 0);
+ */
+void pq_clear(pqueue_t* queue);
+
 /**
  * Destroy the priority queue
  */
