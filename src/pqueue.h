@@ -22,7 +22,7 @@ typedef struct pqueue {
  * Initialise the priority queue using the weights vector given as argument.
  * Callers need to ensure that all indexes stored in the queue are valid indexes in this vector.
  */
-void pq_init(pqueue_t* queue, double* weights, int* indexes);
+void pq_init(pqueue_t* queue, int initial_capacity, double* weights, int* indexes);
 
 
 /**

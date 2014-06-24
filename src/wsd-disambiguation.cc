@@ -72,7 +72,7 @@ void* worker(void* data) {
 int main(int argc, char** argv) {
   int opt;
   char *ifile = NULL;
-  int port = 0, socket, connection;
+  int port = 0, socket;
   long int reserve_edges = 1<<16;
   long int reserve_vertices = 1<<12;
 
@@ -110,10 +110,14 @@ int main(int argc, char** argv) {
     if(port) {
       socket = create_socket(port);
       int conn_fd;
+#ifndef PROFILING
       while( (conn_fd = accept_connection(socket)) >= 0) {
+#else
+      if( (conn_fd = accept_connection(socket)) >= 0) {
+#endif
 	WorkerConnection* wsd = new WorkerConnection(conn_fd, &graph);
 
-#ifdef USE_THREADS
+#if defined(USE_THREADS) && !defined(PROFILING)
 	pthread_create(&wsd->thread, NULL, &worker, wsd);
 #else
 	worker(wsd);

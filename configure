@@ -15620,6 +15620,10 @@ fi
 if test "${enable_profiling+set}" = set; then :
   enableval=$enable_profiling;
 CFLAGS="$CFLAGS -g -pg"
+CXXFLAGS="$CXXFLAGS -g -pg"
+
+$as_echo "#define PROFILING 1" >>confdefs.h
+
 
 fi
 
@@ -15628,6 +15632,7 @@ fi
 if test "${enable_profiling+set}" = set; then :
   enableval=$enable_profiling;
 CFLAGS="$CFLAGS -Wall -Wextra"
+CXXFLAGS="$CXXFLAGS -Wall -Wextra"
 
 fi
 
@@ -15646,6 +15651,7 @@ if test "$ac_enable_threads" = yes; then
 $as_echo "#define USE_THREADS 1" >>confdefs.h
 
   CFLAGS="$CFLAGS -pthread"
+  CXXFLAGS="$CXXFLAGS -pthread"
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lpthread" >&5
 $as_echo_n "checking for pthread_create in -lpthread... " >&6; }
 if ${ac_cv_lib_pthread_pthread_create+:} false; then :

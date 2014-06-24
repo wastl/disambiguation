@@ -205,7 +205,7 @@ double rgraph_shortest_path(rgraph *graph, const char* sfrom, const char* sto, i
   int*     len  = graph->sp_len;
 
   pqueue_t queue;
-  pq_init(&queue,dist,idx);
+  pq_init(&queue,graph->num_vertices, dist,idx);
 
   dist[from] = 0.0;
   len[from]  = 0;

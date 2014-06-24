@@ -18,17 +18,17 @@ inline void exch(pqueue_t* q, int s, int t) {
 }
 
 inline void fixUp(pqueue_t* queue, register int k) {  
-  while(k > 1 && less(queue,k/2,k)) {
-    exch(queue,k,k/2);
-    k = k/2;
+  while(k > 1 && less(queue,k>>1,k)) {
+    exch(queue,k,k>>1);
+    k >>= 1;
   }
 }
 
 
 inline void fixDown(pqueue_t* queue, register int k, int N) {
   register int j;
-  while(2*k <= N) {
-    j = 2*k;
+  while(k<<1 <= N) {
+    j = k<<1;
     if(j < N && less(queue,j,j+1)) j++;
     if(!less(queue,k,j) ) break;
     exch(queue,k,j);    
@@ -40,11 +40,11 @@ inline void fixDown(pqueue_t* queue, register int k, int N) {
  * Initialise the priority queue using the weights vector given as argument.
  * Callers need to ensure that all indexes stored in the queue are valid indexes in this vector.
  */
-void pq_init(pqueue_t* queue, double* weights, int* indexes) {
-  queue->queue    = malloc(INITIAL_CAPACITY * sizeof(int));
+void pq_init(pqueue_t* queue, int initial_capacity, double* weights, int* indexes) {
+  queue->queue    = malloc(initial_capacity * sizeof(int));
   queue->indexes = indexes;
   queue->weights = weights;
-  queue->capacity = INITIAL_CAPACITY;
+  queue->capacity = initial_capacity;
   queue->size = 0;
 }
 

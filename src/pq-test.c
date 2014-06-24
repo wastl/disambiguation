@@ -13,7 +13,7 @@ void main() {
     weights[i] = 1.0/ (i+1);
   }
 
-  pq_init(&queue, weights, indexes);
+  pq_init(&queue, 256, weights, indexes);
 
   // insert every second value
   for(i=0; i<128; i++) {
