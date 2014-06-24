@@ -1,9 +1,9 @@
-
+#include <limits.h>
+#include <float.h>
 #include <igraph/igraph.h>
 
 extern "C" {
 #include "rgraph.h"
-#include "relatedness.h"
 }
 
 #include "disambiguation.h"
@@ -58,7 +58,7 @@ void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
     for(j = i+1; j <= i+maxdist() && j < entities_size(); j++) {
       for(t = 0; t < entities(i).candidates_size(); t++) {
 	for(s = 0; s < entities(j).candidates_size(); s++) {
-	  double w = relatedness(graph, get_node_label(i,t), get_node_label(j,s), maxdist());
+	  double w = rgraph_shortest_path(graph, get_node_label(i,t), get_node_label(j,s), maxdist());
 	  if(w < DBL_MAX) {
 	    igraph_add_edge(&wsd_graph,get_node_id(i,t),get_node_id(j,s));
 	    igraph_vector_push_back (&wsd_weights, w);

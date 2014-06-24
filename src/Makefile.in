@@ -102,8 +102,7 @@ am__v_AR_1 =
 libdisambiguation_a_AR = $(AR) $(ARFLAGS)
 libdisambiguation_a_LIBADD =
 am_libdisambiguation_a_OBJECTS = proto-disambiguation.pb.$(OBJEXT) \
-	disambiguation.$(OBJEXT) relatedness.$(OBJEXT) \
-	network.$(OBJEXT)
+	disambiguation.$(OBJEXT) network.$(OBJEXT)
 libdisambiguation_a_OBJECTS = $(am_libdisambiguation_a_OBJECTS)
 libgraph_a_AR = $(AR) $(ARFLAGS)
 libgraph_a_LIBADD =
@@ -133,8 +132,7 @@ wsd_disambiguation_DEPENDENCIES = libdisambiguation.a libgraph.a
 am_wsd_query_OBJECTS = wsd-query.$(OBJEXT)
 wsd_query_OBJECTS = $(am_wsd_query_OBJECTS)
 wsd_query_DEPENDENCIES = libgraph.a
-am_wsd_relatedness_OBJECTS = wsd-relatedness.$(OBJEXT) \
-	relatedness.$(OBJEXT)
+am_wsd_relatedness_OBJECTS = wsd-relatedness.$(OBJEXT)
 wsd_relatedness_OBJECTS = $(am_wsd_relatedness_OBJECTS)
 wsd_relatedness_DEPENDENCIES = libgraph.a
 AM_V_P = $(am__v_P_@AM_V@)
@@ -348,7 +346,7 @@ top_srcdir = @top_srcdir@
 
 # common static C libraries
 noinst_LIBRARIES = libdisambiguation.a libgraph.a
-libdisambiguation_a_SOURCES = proto-disambiguation.pb.cc disambiguation.cc relatedness.c network.c 
+libdisambiguation_a_SOURCES = proto-disambiguation.pb.cc disambiguation.cc network.c 
 libgraph_a_SOURCES = graphio.c rgraph.c pqueue.c
 
 # program for computing the disambiguation problem (C++)
@@ -360,7 +358,7 @@ wsd_create_SOURCES = wsd-create.c parse_graph.c weights_combi.c
 wsd_create_LDADD = @rdflibs@ @threads@ libgraph.a
 
 # program for computing relatedness values over the graph
-wsd_relatedness_SOURCES = wsd-relatedness.c relatedness.c 
+wsd_relatedness_SOURCES = wsd-relatedness.c 
 wsd_relatedness_LDADD = @threads@ libgraph.a
 
 # simple test program for querying the graph
@@ -513,7 +511,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pq-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pqueue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proto-disambiguation.pb.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relatedness.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weights_combi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/worker.Po@am__quote@

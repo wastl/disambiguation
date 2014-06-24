@@ -4,7 +4,7 @@
 
 # common static C libraries
 noinst_LIBRARIES = libdisambiguation.a libgraph.a
-libdisambiguation_a_SOURCES = proto-disambiguation.pb.cc disambiguation.cc relatedness.c network.c 
+libdisambiguation_a_SOURCES = proto-disambiguation.pb.cc disambiguation.cc network.c 
 libgraph_a_SOURCES = graphio.c rgraph.c pqueue.c
 
 # executable programs
@@ -19,7 +19,7 @@ wsd_create_SOURCES = wsd-create.c parse_graph.c weights_combi.c
 wsd_create_LDADD = @rdflibs@ @threads@ libgraph.a
 
 # program for computing relatedness values over the graph
-wsd_relatedness_SOURCES  = wsd-relatedness.c relatedness.c 
+wsd_relatedness_SOURCES  = wsd-relatedness.c 
 wsd_relatedness_LDADD = @threads@ libgraph.a
 
 

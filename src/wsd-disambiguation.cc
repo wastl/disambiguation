@@ -16,7 +16,6 @@ extern "C" {
 
 #include "rgraph.h"
 #include "graphio.h"
-#include "relatedness.h"
 #include "network.h"
 }
 

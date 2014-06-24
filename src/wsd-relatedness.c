@@ -6,7 +6,6 @@
 
 #include "rgraph.h"
 #include "graphio.h"
-#include "relatedness.h"
 
 void usage(char *cmd) {
   printf("Usage: %s -i fileprefix [-e edges] [-v vertices]\n", cmd);
@@ -87,7 +86,7 @@ void main(int argc, char** argv) {
 
       printf("computing relatedness for %s and %s ... \n",from,to);
       fflush(stdout);
-      r = relatedness(&graph,from,to,3);
+      r = rgraph_shortest_path(&graph,from,to,3);
 
       printf("relatedness = %.6f\n",r);
 
