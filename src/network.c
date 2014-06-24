@@ -38,7 +38,7 @@ int create_socket(int port) {
 /**
  * Accept a connection on a server socket
  */
-int accept_connection(int sockfd, FILE** in, FILE** out) {
+int accept_connection(int sockfd) {
   fprintf(stderr, "awaiting connection ...\n");
 
   int newsockfd;
@@ -52,18 +52,14 @@ int accept_connection(int sockfd, FILE** in, FILE** out) {
     exit(1);
   }
 
-  *in  = fdopen(newsockfd, "r");
-  *out = fdopen(newsockfd, "w");
   
   return newsockfd;
 }
 
 
-void close_connection(int sockfd, FILE** in, FILE** out) {
+void close_connection(int sockfd) {
   fprintf(stderr, "closing connection ...\n");
 
-  fclose(*in);
-  fclose(*out);
   close(sockfd);
 }
 

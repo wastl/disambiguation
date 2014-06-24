@@ -9,9 +9,14 @@ message Entity {
 }
 
 message DisambiguationRequest {
-  repeated Entity entities = 1;
-}
+  enum Algorithm {
+    EIGENVECTOR = 1;
+    BETWEENNESS = 2;
+    CLOSENESS   = 3;
+    PAGERANK    = 4;
+  }
 
-message DisambiguationResult {
-  repeated Entity entities = 1;
+  repeated Entity entities = 1;  
+  optional Algorithm algorithm = 2;
+  optional int32 maxdist = 3;
 }

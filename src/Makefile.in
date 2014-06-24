@@ -14,6 +14,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -90,30 +91,43 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
+LIBRARIES = $(noinst_LIBRARIES)
+ARFLAGS = cru
+AM_V_AR = $(am__v_AR_@AM_V@)
+am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
+am__v_AR_0 = @echo "  AR      " $@;
+am__v_AR_1 = 
+libdisambiguation_a_AR = $(AR) $(ARFLAGS)
+libdisambiguation_a_LIBADD =
+am_libdisambiguation_a_OBJECTS = proto-disambiguation.pb.$(OBJEXT) \
+	disambiguation.$(OBJEXT) relatedness.$(OBJEXT) \
+	network.$(OBJEXT)
+libdisambiguation_a_OBJECTS = $(am_libdisambiguation_a_OBJECTS)
+libgraph_a_AR = $(AR) $(ARFLAGS)
+libgraph_a_LIBADD =
+am_libgraph_a_OBJECTS = graphio.$(OBJEXT) rgraph.$(OBJEXT)
+libgraph_a_OBJECTS = $(am_libgraph_a_OBJECTS)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_wsd_create_OBJECTS = wsd-create.$(OBJEXT) graphio.$(OBJEXT) \
-	parse_graph.$(OBJEXT) rgraph.$(OBJEXT) weights_combi.$(OBJEXT)
+am_wsd_create_OBJECTS = wsd-create.$(OBJEXT) parse_graph.$(OBJEXT) \
+	weights_combi.$(OBJEXT)
 wsd_create_OBJECTS = $(am_wsd_create_OBJECTS)
-wsd_create_DEPENDENCIES =
+wsd_create_DEPENDENCIES = libgraph.a
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_wsd_disambiguation_OBJECTS = proto-disambiguation.pb-c.$(OBJEXT) \
-	wsd-disambiguation.$(OBJEXT) disambiguation.$(OBJEXT) \
-	relatedness.$(OBJEXT) graphio.$(OBJEXT) rgraph.$(OBJEXT) \
-	network.$(OBJEXT)
+am_wsd_disambiguation_OBJECTS = worker.$(OBJEXT) \
+	wsd-disambiguation.$(OBJEXT)
 wsd_disambiguation_OBJECTS = $(am_wsd_disambiguation_OBJECTS)
-wsd_disambiguation_DEPENDENCIES =
-am_wsd_query_OBJECTS = wsd-query.$(OBJEXT) graphio.$(OBJEXT) \
-	rgraph.$(OBJEXT)
+wsd_disambiguation_DEPENDENCIES = libdisambiguation.a libgraph.a
+am_wsd_query_OBJECTS = wsd-query.$(OBJEXT)
 wsd_query_OBJECTS = $(am_wsd_query_OBJECTS)
-wsd_query_DEPENDENCIES =
+wsd_query_DEPENDENCIES = libgraph.a
 am_wsd_relatedness_OBJECTS = wsd-relatedness.$(OBJEXT) \
-	relatedness.$(OBJEXT) graphio.$(OBJEXT) rgraph.$(OBJEXT)
+	relatedness.$(OBJEXT)
 wsd_relatedness_OBJECTS = $(am_wsd_relatedness_OBJECTS)
-wsd_relatedness_DEPENDENCIES =
+wsd_relatedness_DEPENDENCIES = libgraph.a
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -148,9 +162,29 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(wsd_create_SOURCES) $(wsd_disambiguation_SOURCES) \
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CXXFLAGS) $(CXXFLAGS)
+AM_V_CXX = $(am__v_CXX_@AM_V@)
+am__v_CXX_ = $(am__v_CXX_@AM_DEFAULT_V@)
+am__v_CXX_0 = @echo "  CXX     " $@;
+am__v_CXX_1 = 
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
+am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
+am__v_CXXLD_0 = @echo "  CXXLD   " $@;
+am__v_CXXLD_1 = 
+SOURCES = $(libdisambiguation_a_SOURCES) $(libgraph_a_SOURCES) \
+	$(wsd_create_SOURCES) $(wsd_disambiguation_SOURCES) \
 	$(wsd_query_SOURCES) $(wsd_relatedness_SOURCES)
-DIST_SOURCES = $(wsd_create_SOURCES) $(wsd_disambiguation_SOURCES) \
+DIST_SOURCES = $(libdisambiguation_a_SOURCES) $(libgraph_a_SOURCES) \
+	$(wsd_create_SOURCES) $(wsd_disambiguation_SOURCES) \
 	$(wsd_query_SOURCES) $(wsd_relatedness_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -190,6 +224,10 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+CXXDEPMODE = @CXXDEPMODE@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
@@ -246,6 +284,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
@@ -295,18 +334,31 @@ threads = @threads@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-wsd_create_SOURCES = wsd-create.c graphio.c parse_graph.c rgraph.c weights_combi.c
-wsd_relatedness_SOURCES = wsd-relatedness.c relatedness.c graphio.c rgraph.c
-wsd_disambiguation_SOURCES = proto-disambiguation.pb-c.c wsd-disambiguation.c disambiguation.c relatedness.c graphio.c rgraph.c network.c 
-wsd_query_SOURCES = wsd-query.c graphio.c rgraph.c
-wsd_create_LDADD = @rdflibs@ @threads@
-wsd_relatedness_LDADD = @threads@
-wsd_disambiguation_LDADD = @threads@ @protobuf_libs@
-wsd_query_LDADD = @threads@
+
+# common static C libraries
+noinst_LIBRARIES = libdisambiguation.a libgraph.a
+libdisambiguation_a_SOURCES = proto-disambiguation.pb.cc disambiguation.cc relatedness.c network.c 
+libgraph_a_SOURCES = graphio.c rgraph.c
+
+# program for computing the disambiguation problem (C++)
+wsd_disambiguation_SOURCES = worker.cc wsd-disambiguation.cc 
+wsd_disambiguation_LDADD = @threads@ @protobuf_libs@ libdisambiguation.a libgraph.a
+
+# program for creating a (binary) graph representation
+wsd_create_SOURCES = wsd-create.c parse_graph.c weights_combi.c
+wsd_create_LDADD = @rdflibs@ @threads@ libgraph.a
+
+# program for computing relatedness values over the graph
+wsd_relatedness_SOURCES = wsd-relatedness.c relatedness.c 
+wsd_relatedness_LDADD = @threads@ libgraph.a
+
+# simple test program for querying the graph
+wsd_query_SOURCES = wsd-query.c 
+wsd_query_LDADD = @threads@ libgraph.a
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .lo .o .obj
+.SUFFIXES: .c .cc .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -316,9 +368,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/Makefile
+	  $(AUTOMAKE) --gnu src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -337,6 +389,19 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+
+libdisambiguation.a: $(libdisambiguation_a_OBJECTS) $(libdisambiguation_a_DEPENDENCIES) $(EXTRA_libdisambiguation_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libdisambiguation.a
+	$(AM_V_AR)$(libdisambiguation_a_AR) libdisambiguation.a $(libdisambiguation_a_OBJECTS) $(libdisambiguation_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libdisambiguation.a
+
+libgraph.a: $(libgraph_a_OBJECTS) $(libgraph_a_DEPENDENCIES) $(EXTRA_libgraph_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libgraph.a
+	$(AM_V_AR)$(libgraph_a_AR) libgraph.a $(libgraph_a_OBJECTS) $(libgraph_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libgraph.a
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
@@ -393,7 +458,7 @@ wsd-create$(EXEEXT): $(wsd_create_OBJECTS) $(wsd_create_DEPENDENCIES) $(EXTRA_ws
 
 wsd-disambiguation$(EXEEXT): $(wsd_disambiguation_OBJECTS) $(wsd_disambiguation_DEPENDENCIES) $(EXTRA_wsd_disambiguation_DEPENDENCIES) 
 	@rm -f wsd-disambiguation$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(wsd_disambiguation_OBJECTS) $(wsd_disambiguation_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(CXXLINK) $(wsd_disambiguation_OBJECTS) $(wsd_disambiguation_LDADD) $(LIBS)
 
 wsd-query$(EXEEXT): $(wsd_query_OBJECTS) $(wsd_query_DEPENDENCIES) $(EXTRA_wsd_query_DEPENDENCIES) 
 	@rm -f wsd-query$(EXEEXT)
@@ -413,10 +478,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/network.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_graph.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proto-disambiguation.pb-c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proto-disambiguation.pb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relatedness.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weights_combi.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/worker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-create.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-disambiguation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-query.Po@am__quote@
@@ -442,6 +508,27 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+.cc.o:
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ $<
+
+.cc.obj:
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.cc.lo:
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -533,7 +620,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS)
+all-am: Makefile $(LIBRARIES) $(PROGRAMS)
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
@@ -570,7 +657,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libtool \
+	clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -641,23 +729,24 @@ uninstall-am: uninstall-binPROGRAMS
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
-	clean-binPROGRAMS clean-generic clean-libtool cscopelist-am \
-	ctags ctags-am distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-binPROGRAMS \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
+	clean-binPROGRAMS clean-generic clean-libtool \
+	clean-noinstLIBRARIES cscopelist-am ctags ctags-am distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-binPROGRAMS install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS
 
 
 # compile protocol buffers for C
-%.pb-c.c %.pb-c.h: %.proto
-	$(PROTOC) $^ --c_out=$(dir $^)
+%.pb.cc %.pb.h: %.proto
+	$(PROTOC) -I=$(dir $^) --cpp_out=$(dir $^) $^
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

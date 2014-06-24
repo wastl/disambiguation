@@ -1,26 +1,29 @@
 
 #include <igraph/igraph.h>
 
+extern "C" {
 #include "rgraph.h"
 #include "relatedness.h"
+}
+
 #include "disambiguation.h"
 
 
-void disambiguation(rgraph *graph, wsd_term_t *terms, int num_terms, int max_dist, wsd_centrality_algorithm algorithm) {
+void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
   int i, j, t, s;
 
-  int num_vertices=0;     // how many vertices in total
-  int offsets[num_terms]; // markers to see where in the graph vertice
-			  // list the vertices for a term start
+  int num_vertices=0;           // how many vertices in total
+  int offsets[entities_size()]; // markers to see where in the graph vertice
+			        // list the vertices for a term start
 
-#define get_node_label(x,y) terms[offsets[x]].candidates[y].uri
+#define get_node_label(x,y) entities(x).candidates(y).uri().c_str()
 #define get_node_id(x,y)    offsets[x]+y
-#define N                   num_terms
-#define N_w(i)              terms[i].num_candidates
+#define N                   entities_size()
+#define N_w(i)              entities(i).candidates_size()
 
-  for(i = 0; i < num_terms; i++) {
+  for(i = 0; i < entities_size(); i++) {
     offsets[i]    = num_vertices;
-    num_vertices += terms[i].num_candidates;
+    num_vertices += entities(i).candidates_size();
   }
 
   // initialise graph with a vertice for every candidate of every term
@@ -33,12 +36,14 @@ void disambiguation(rgraph *graph, wsd_term_t *terms, int num_terms, int max_dis
 
   // 1. build dependency graph (see http://www.cse.unt.edu/~rada/papers/sinha.ieee07.pdf)
 
+  std::cout << "building dependency graph...\n";
+
   // TODO: this part can easily be parallelized, especially computing
   // edge weights could benefit!
-  for(i = 0; i < num_terms; i++) {
-    for(j = i+1; j <= i+max_dist && j < num_vertices; j++) {
-      for(t = 0; t < N_w(i); t++) {
-	for(s = 0; s < N_w(j); s++) {
+  for(i = 0; i < entities_size(); i++) {
+    for(j = i+1; j <= i+maxdist() && j < entities_size(); j++) {
+      for(t = 0; t < entities(i).candidates_size(); t++) {
+	for(s = 0; s < entities(j).candidates_size(); s++) {
 	  double w = relatedness(graph, get_node_label(i,t), get_node_label(j,s), NULL);
 	  igraph_add_edge(&wsd_graph,get_node_id(i,t),get_node_id(j,s));
           igraph_vector_push_back (&wsd_weights, w);
@@ -58,27 +63,30 @@ void disambiguation(rgraph *graph, wsd_term_t *terms, int num_terms, int max_dis
   igraph_vs_t vertice_s;
   igraph_vs_all(&vertice_s);
 
+  std::cout << "computing centrality scores using algorithm " << algorithm() << "...\n";
+
   // we support a number of different algorithms through igraph ...
-  switch(algorithm) {
-  case ALGO_PAGERANK:
+  switch(algorithm()) {
+  case PAGERANK:
     // igraph version <0.7 and >= 0.5
     igraph_pagerank(&wsd_graph, &wsd_centralities, 0, igraph_vss_all(), 0, 0.85, &wsd_weights, 0);
     break;
-  case ALGO_CLOSENESS:
+  case CLOSENESS:
     igraph_closeness(&wsd_graph, &wsd_centralities, igraph_vss_all(), IGRAPH_ALL, &wsd_weights);
     break;
-  case ALGO_BETWEENNESS:
+  case BETWEENNESS:
     igraph_betweenness(&wsd_graph, &wsd_centralities, igraph_vss_all(), 0, &wsd_weights, 0);
     break;
-  case ALGO_EIGENVECTOR:
+  case EIGENVECTOR:
   default:
     igraph_eigenvector_centrality(&wsd_graph, &wsd_centralities, NULL, 0, 1, &wsd_weights, &options);
     break;
   }  
 
+  std::cout << "writing back disambiguation results...\n";
   for(i = 0; i<N; i++) {
     for(j = 0; j<N_w(i); j++) {
-      terms[i].candidates[j].rank = igraph_vector_e(&wsd_centralities,get_node_id(i,j));
+      mutable_entities(i)->mutable_candidates(j)->set_confidence(igraph_vector_e(&wsd_centralities,get_node_id(i,j)));
     }
   }
 
@@ -86,4 +94,22 @@ void disambiguation(rgraph *graph, wsd_term_t *terms, int num_terms, int max_dis
   igraph_vector_destroy(&wsd_centralities);
   igraph_vector_destroy(&wsd_weights);
   igraph_destroy(&wsd_graph);
+}
+
+
+
+/**
+ * Operator for writing to standard streams
+ */
+std::ostream& operator<<(std::ostream& out, const WSDDisambiguationRequest& r) {
+  r.SerializeToOstream(&out);
+  return out;
+}
+
+/**
+ * Operator for reading from standard streams
+ */
+std::istream& operator>>(std::istream& in, WSDDisambiguationRequest& r) {
+  r.ParseFromIstream(&in);
+  return in;
 }
