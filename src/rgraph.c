@@ -36,6 +36,11 @@ void init_rgraph(rgraph *graph, int reserve_vertices, int reserve_edges) {
   pthread_rwlock_init(&graph->mutex_v,NULL);
   pthread_mutex_init(&graph->mutex_g,NULL);
 #endif
+
+  // helper structures are initialised lazily
+  graph->sp_dist = 0;
+  graph->sp_len  = 0;
+  graph->sp_idx  = 0;
 }
 
 
@@ -97,7 +102,16 @@ void destroy_rgraph(rgraph *graph) {
   pthread_rwlock_destroy(&graph->mutex_v);
   pthread_mutex_destroy(&graph->mutex_g);
 #endif
-  
+
+  if(graph->sp_idx) {
+    free(graph->sp_idx);
+  }
+  if(graph->sp_dist) {
+    free(graph->sp_dist);
+  }
+  if(graph->sp_len) {
+    free(graph->sp_len);
+  }
 }
 
 
@@ -176,9 +190,19 @@ double rgraph_shortest_path(rgraph *graph, const char* sfrom, const char* sto, i
     return DBL_MAX;
   }
 
-  double*  dist = malloc(graph->num_vertices * sizeof(double));
-  int*     idx  = malloc(graph->num_vertices * sizeof(int));
-  int*     len  = malloc(graph->num_vertices * sizeof(int));
+  if(!graph->sp_dist) {
+    graph->sp_dist = malloc(graph->num_vertices * sizeof(double));
+  }
+  if(!graph->sp_idx) {
+    graph->sp_idx = malloc(graph->num_vertices * sizeof(int));
+  }
+  if(!graph->sp_len) {
+    graph->sp_len = malloc(graph->num_vertices * sizeof(int));
+  }
+
+  double*  dist = graph->sp_dist;
+  int*     idx  = graph->sp_idx;
+  int*     len  = graph->sp_len;
 
   pqueue_t queue;
   pq_init(&queue,dist,idx);
@@ -230,9 +254,9 @@ double rgraph_shortest_path(rgraph *graph, const char* sfrom, const char* sto, i
   r = dist[to];
 
   pq_destroy(&queue);
-  free(dist);
-  free(idx);
-  free(len);
+  //  free(dist);
+  //  free(idx);
+  //  free(len);
 
   return r;
 }

@@ -32,6 +32,11 @@ typedef struct rgraph {
   pthread_rwlock_t mutex_v;      /* vertice mutex */
   pthread_mutex_t  mutex_g;      /* graph mutex  */
 #endif
+
+  // helper structures (not thread safe!)
+  double* sp_dist;
+  int*    sp_len;
+  int*    sp_idx;
 } rgraph;
 
 
