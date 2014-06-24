@@ -92,4 +92,12 @@ void rgraph_add_prefix(rgraph *graph, const char* uri);
  */
 char* rgraph_has_prefix(rgraph *graph, const char* uri, char** pos);
 
+
+/**
+ * Compute shortest path from one entity to the other, stopping when the given maximum distance is
+ * exceeded (in which case DBL_MAX is returned)
+ */
+double rgraph_shortest_path(rgraph *graph, const char* from, const char* to, int max_dist);
+
+
 #endif

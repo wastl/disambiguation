@@ -14,7 +14,7 @@
  * vector is given, the vector will afterwards contain a list of edges
  * used in the computation.
  */
-double relatedness(rgraph* g, const char* from, const char* to, igraph_vector_t *edges);
+double relatedness(rgraph* g, const char* from, const char* to, int max_dist);
 
 
 

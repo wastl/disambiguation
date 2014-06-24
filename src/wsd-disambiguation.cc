@@ -127,12 +127,13 @@ int main(int argc, char** argv) {
     }
 
     
+    google::protobuf::ShutdownProtobufLibrary();
 
 
     destroy_rgraph(&graph);
-    } else {
+  } else {
     usage(argv[0]);
-    }
+  }
 
   return 0;
 }

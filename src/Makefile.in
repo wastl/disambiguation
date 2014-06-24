@@ -80,7 +80,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = wsd-create$(EXEEXT) wsd-relatedness$(EXEEXT) \
-	wsd-query$(EXEEXT) wsd-disambiguation$(EXEEXT)
+	wsd-disambiguation$(EXEEXT)
+noinst_PROGRAMS = wsd-query$(EXEEXT) wsd-debug$(EXEEXT) \
+	pq-test$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -105,18 +107,25 @@ am_libdisambiguation_a_OBJECTS = proto-disambiguation.pb.$(OBJEXT) \
 libdisambiguation_a_OBJECTS = $(am_libdisambiguation_a_OBJECTS)
 libgraph_a_AR = $(AR) $(ARFLAGS)
 libgraph_a_LIBADD =
-am_libgraph_a_OBJECTS = graphio.$(OBJEXT) rgraph.$(OBJEXT)
+am_libgraph_a_OBJECTS = graphio.$(OBJEXT) rgraph.$(OBJEXT) \
+	pqueue.$(OBJEXT)
 libgraph_a_OBJECTS = $(am_libgraph_a_OBJECTS)
 am__installdirs = "$(DESTDIR)$(bindir)"
-PROGRAMS = $(bin_PROGRAMS)
-am_wsd_create_OBJECTS = wsd-create.$(OBJEXT) parse_graph.$(OBJEXT) \
-	weights_combi.$(OBJEXT)
-wsd_create_OBJECTS = $(am_wsd_create_OBJECTS)
-wsd_create_DEPENDENCIES = libgraph.a
+PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
+am_pq_test_OBJECTS = pq-test.$(OBJEXT) pqueue.$(OBJEXT)
+pq_test_OBJECTS = $(am_pq_test_OBJECTS)
+pq_test_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_wsd_create_OBJECTS = wsd-create.$(OBJEXT) parse_graph.$(OBJEXT) \
+	weights_combi.$(OBJEXT)
+wsd_create_OBJECTS = $(am_wsd_create_OBJECTS)
+wsd_create_DEPENDENCIES = libgraph.a
+am_wsd_debug_OBJECTS = wsd-debug.$(OBJEXT)
+wsd_debug_OBJECTS = $(am_wsd_debug_OBJECTS)
+wsd_debug_DEPENDENCIES = libgraph.a
 am_wsd_disambiguation_OBJECTS = worker.$(OBJEXT) \
 	wsd-disambiguation.$(OBJEXT)
 wsd_disambiguation_OBJECTS = $(am_wsd_disambiguation_OBJECTS)
@@ -181,11 +190,13 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(libdisambiguation_a_SOURCES) $(libgraph_a_SOURCES) \
-	$(wsd_create_SOURCES) $(wsd_disambiguation_SOURCES) \
-	$(wsd_query_SOURCES) $(wsd_relatedness_SOURCES)
+	$(pq_test_SOURCES) $(wsd_create_SOURCES) $(wsd_debug_SOURCES) \
+	$(wsd_disambiguation_SOURCES) $(wsd_query_SOURCES) \
+	$(wsd_relatedness_SOURCES)
 DIST_SOURCES = $(libdisambiguation_a_SOURCES) $(libgraph_a_SOURCES) \
-	$(wsd_create_SOURCES) $(wsd_disambiguation_SOURCES) \
-	$(wsd_query_SOURCES) $(wsd_relatedness_SOURCES)
+	$(pq_test_SOURCES) $(wsd_create_SOURCES) $(wsd_debug_SOURCES) \
+	$(wsd_disambiguation_SOURCES) $(wsd_query_SOURCES) \
+	$(wsd_relatedness_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -338,7 +349,7 @@ top_srcdir = @top_srcdir@
 # common static C libraries
 noinst_LIBRARIES = libdisambiguation.a libgraph.a
 libdisambiguation_a_SOURCES = proto-disambiguation.pb.cc disambiguation.cc relatedness.c network.c 
-libgraph_a_SOURCES = graphio.c rgraph.c
+libgraph_a_SOURCES = graphio.c rgraph.c pqueue.c
 
 # program for computing the disambiguation problem (C++)
 wsd_disambiguation_SOURCES = worker.cc wsd-disambiguation.cc 
@@ -355,6 +366,10 @@ wsd_relatedness_LDADD = @threads@ libgraph.a
 # simple test program for querying the graph
 wsd_query_SOURCES = wsd-query.c 
 wsd_query_LDADD = @threads@ libgraph.a
+# debug program
+wsd_debug_SOURCES = wsd-debug.c 
+wsd_debug_LDADD = @threads@ libgraph.a
+pq_test_SOURCES = pq-test.c pqueue.c
 all: all-am
 
 .SUFFIXES:
@@ -452,9 +467,26 @@ clean-binPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
+clean-noinstPROGRAMS:
+	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
+
+pq-test$(EXEEXT): $(pq_test_OBJECTS) $(pq_test_DEPENDENCIES) $(EXTRA_pq_test_DEPENDENCIES) 
+	@rm -f pq-test$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(pq_test_OBJECTS) $(pq_test_LDADD) $(LIBS)
+
 wsd-create$(EXEEXT): $(wsd_create_OBJECTS) $(wsd_create_DEPENDENCIES) $(EXTRA_wsd_create_DEPENDENCIES) 
 	@rm -f wsd-create$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(wsd_create_OBJECTS) $(wsd_create_LDADD) $(LIBS)
+
+wsd-debug$(EXEEXT): $(wsd_debug_OBJECTS) $(wsd_debug_DEPENDENCIES) $(EXTRA_wsd_debug_DEPENDENCIES) 
+	@rm -f wsd-debug$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(wsd_debug_OBJECTS) $(wsd_debug_LDADD) $(LIBS)
 
 wsd-disambiguation$(EXEEXT): $(wsd_disambiguation_OBJECTS) $(wsd_disambiguation_DEPENDENCIES) $(EXTRA_wsd_disambiguation_DEPENDENCIES) 
 	@rm -f wsd-disambiguation$(EXEEXT)
@@ -478,12 +510,15 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/network.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_graph.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pq-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pqueue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proto-disambiguation.pb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relatedness.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weights_combi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/worker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-create.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-debug.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-disambiguation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-query.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-relatedness.Po@am__quote@
@@ -658,7 +693,7 @@ maintainer-clean-generic:
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libtool \
-	clean-noinstLIBRARIES mostlyclean-am
+	clean-noinstLIBRARIES clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -730,15 +765,15 @@ uninstall-am: uninstall-binPROGRAMS
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
 	clean-binPROGRAMS clean-generic clean-libtool \
-	clean-noinstLIBRARIES cscopelist-am ctags ctags-am distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-binPROGRAMS install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	clean-noinstLIBRARIES clean-noinstPROGRAMS cscopelist-am ctags \
+	ctags-am distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-binPROGRAMS \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS

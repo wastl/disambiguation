@@ -87,11 +87,7 @@ void main(int argc, char** argv) {
 
       printf("computing relatedness for %s and %s ... \n",from,to);
       fflush(stdout);
-      igraph_vector_t edges;
-      igraph_vector_init(&edges,0);
-      r = relatedness(&graph,from,to,&edges);
-      print_path(&graph,&edges);
-      igraph_vector_destroy(&edges);
+      r = relatedness(&graph,from,to,3);
 
       printf("relatedness = %.6f\n",r);
 

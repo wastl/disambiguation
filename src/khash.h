@@ -231,23 +231,6 @@ static const double __ac_HASH_UPPER = 0.77;
 			return __ac_iseither(h->flags, i)? h->n_buckets : i;		\
 		} else return 0;												\
 	}																	\
-	SCOPE khint_t kh_pget_##name(const kh_##name##_t *h, khkey_t key, pthread_rwlock_t *lock) \
-	{																	\
-		if (h->n_buckets) {												\
-			khint_t k, i, last, mask, step = 0; \
-			k = __hash_func(key);                                           \
-                        pthread_rwlock_rdlock(lock);                                    \
-			mask = h->n_buckets - 1;									\
-                        i = k & mask;							\
-			last = i; \
-			while (!__ac_isempty(h->flags, i) && (__ac_isdel(h->flags, i) || !__hash_equal(h->keys[i], key))) { \
-				i = (i + (++step)) & mask; \
-				if (i == last) { pthread_rwlock_unlock(lock);  return h->n_buckets; } \
-			}															\
-                        pthread_rwlock_unlock(lock);                                    \
-			return __ac_iseither(h->flags, i)? h->n_buckets : i;		\
-		} else return 0;												\
-	}																	\
 	SCOPE int kh_resize_##name(kh_##name##_t *h, khint_t new_n_buckets) \
 	{ /* This function uses 0.25*n_buckets bytes of working space instead of [sizeof(key_t+val_t)+.25]*n_buckets. */ \
 		khint32_t *new_flags = 0;										\

@@ -8,6 +8,20 @@ extern "C" {
 
 #include "disambiguation.h"
 
+inline int ipow(int base, int exp)
+{
+    int result = 1;
+    while (exp)
+    {
+        if (exp & 1)
+            result *= base;
+        exp >>= 1;
+        base *= base;
+    }
+
+    return result;
+}
+
 
 void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
   int i, j, t, s;
@@ -44,9 +58,11 @@ void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
     for(j = i+1; j <= i+maxdist() && j < entities_size(); j++) {
       for(t = 0; t < entities(i).candidates_size(); t++) {
 	for(s = 0; s < entities(j).candidates_size(); s++) {
-	  double w = relatedness(graph, get_node_label(i,t), get_node_label(j,s), NULL);
-	  igraph_add_edge(&wsd_graph,get_node_id(i,t),get_node_id(j,s));
-          igraph_vector_push_back (&wsd_weights, w);
+	  double w = relatedness(graph, get_node_label(i,t), get_node_label(j,s), maxdist());
+	  if(w < DBL_MAX) {
+	    igraph_add_edge(&wsd_graph,get_node_id(i,t),get_node_id(j,s));
+	    igraph_vector_push_back (&wsd_weights, w);
+	  }
 	}
       }
     }
@@ -84,9 +100,12 @@ void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
   }  
 
   std::cout << "writing back disambiguation results...\n";
+  double max = igraph_vector_max(&wsd_centralities);
+  igraph_vector_scale(&wsd_centralities, 1.0/max);
+
   for(i = 0; i<N; i++) {
     for(j = 0; j<N_w(i); j++) {
-      mutable_entities(i)->mutable_candidates(j)->set_confidence(igraph_vector_e(&wsd_centralities,get_node_id(i,j)));
+      mutable_entities(i)->mutable_candidates(j)->set_confidence(1.0-round(ipow(10,PRECISION)*igraph_vector_e(&wsd_centralities,get_node_id(i,j)))/ipow(10,PRECISION));
     }
   }
 

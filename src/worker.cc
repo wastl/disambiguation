@@ -23,6 +23,9 @@ WorkerConnection::WorkerConnection(int connection, rgraph *graph) : connection(c
 
 WorkerConnection::~WorkerConnection() {
   if(connection) {
+    delete in->rdbuf();
+    delete out->rdbuf();
+
     delete in;
     delete out;
 
@@ -39,8 +42,6 @@ WorkerConnection& WorkerConnection::operator<<(WSDDisambiguationRequest &r) {
 
   char buf[length];
   r.SerializeToArray(buf,length);
-
-  std::cout << "first byte: '" << (int)buf[0] << "', second byte: '"<<(int)buf[1]<<"'\n";
 
   out->write((char*)&length, sizeof(int));
   out->write(buf,length);
