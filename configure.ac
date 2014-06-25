@@ -28,6 +28,14 @@ AC_SUBST(protobuf_libs)
 AC_PATH_PROG(PROTOC,protoc)
 AC_SUBST(PROTOC)
 
+
+AC_CHECK_LIB(pthread,pthread_create, , [AC_CHECK_LIB(c_r,pthread_create, , AC_MSG_ERROR("threading not supported on platform"))])
+AC_CHECK_HEADER(pthread.h, , AC_MSG_ERROR("required pthread headers are missing"))
+AC_DEFINE(USE_THREADS, 1, [use threads])
+CFLAGS="$CFLAGS -pthread"
+CXXFLAGS="$CXXFLAGS -pthread"
+
+
 AC_ARG_ENABLE(profiling,AS_HELP_STRING(--enable-profiling,enable GNU gprof profiling support),[
 CFLAGS="$CFLAGS -g -pg"
 CXXFLAGS="$CXXFLAGS -g -pg"
@@ -40,21 +48,6 @@ CXXFLAGS="$CXXFLAGS -Wall -Wextra"
 ])
 
 
-threads=
-AC_ARG_ENABLE(threads, AC_HELP_STRING([--enable-threads],
-                      [enable multi-threaded computation (default is no)]),
-                    ac_enable_threads=$enableval,
-                    ac_enable_threads=no)
-if test "$ac_enable_threads" = yes; then
-  AC_DEFINE(USE_THREADS, 1, [use threads])
-  CFLAGS="$CFLAGS -pthread"
-  CXXFLAGS="$CXXFLAGS -pthread"
-  AC_CHECK_LIB(pthread,pthread_create,threads=-lpthread, [AC_CHECK_LIB(c_r,pthread_create,threads=-lc_r)])
-fi
-AC_SUBST(threads)
 
 
-
-
-
-AC_OUTPUT([Makefile relatedness/Makefile communication/Makefile graph/Makefile create/Makefile python/Makefile src/Makefile])
+AC_OUTPUT([Makefile relatedness/Makefile disambiguation/Makefile communication/Makefile graph/Makefile create/Makefile threading/Makefile python/Makefile src/Makefile])

@@ -1,2 +1,2 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = graph relatedness communication create src python #java
+SUBDIRS = threading communication graph relatedness disambiguation create src python #java

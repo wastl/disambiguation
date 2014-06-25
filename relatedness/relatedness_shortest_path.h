@@ -17,7 +17,8 @@ namespace mico {
      */
     class shortest_path : public virtual base {
 
-    private:
+      int max_dist;
+
       // helper structures (not thread safe!)
       pqueue_t queue;
 
@@ -27,10 +28,10 @@ namespace mico {
 
     public:
 
-      shortest_path(rgraph* graph);
+      shortest_path(rgraph* graph, int max_dist);
       ~shortest_path();
 
-      double relatedness(const char* from, const char* to, int max_dist);
+      double relatedness(const char* from, const char* to);
 
 
     };

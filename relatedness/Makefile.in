@@ -317,7 +317,6 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-threads = @threads@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
@@ -328,7 +327,7 @@ librelatedness_a_SOURCES = relatedness_shortest_path.cc pqueue.c
 
 # program for computing relatedness values over the graph
 wsd_relatedness_SOURCES = wsd-relatedness.cc
-wsd_relatedness_LDADD = @threads@ ../graph/libgraph.a librelatedness.a
+wsd_relatedness_LDADD = ../graph/libgraph.a librelatedness.a
 all: all-am
 
 .SUFFIXES:

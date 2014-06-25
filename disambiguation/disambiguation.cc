@@ -1,12 +1,16 @@
+#include <queue>
+
 #include <limits.h>
 #include <float.h>
 #include <igraph/igraph.h>
 
 extern "C" {
+#include "../config.h"
 #include "../graph/rgraph.h"
 }
 
 #include "disambiguation.h"
+#include "wsd_relatedness_worker.h"
 #include "../relatedness/relatedness_base.h"
 #include "../relatedness/relatedness_shortest_path.h"
 
@@ -26,7 +30,9 @@ inline int ipow(int base, int exp)
 
 
 void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
-  int i, j, t, s;
+  using namespace  mico::disambiguation::wsd;
+
+  int i, j, t, s, c = 0;
 
   int num_vertices=0;           // how many vertices in total
   int offsets[entities_size()]; // markers to see where in the graph vertice
@@ -54,24 +60,23 @@ void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
 
   std::cout << "building dependency graph...\n";
 
-  mico::relatedness::base* alg_rel = new mico::relatedness::shortest_path(graph);
 
-  // TODO: this part can easily be parallelized, especially computing
-  // edge weights could benefit!
+  // create thread pool
+  relatedness_threadpool<mico::relatedness::shortest_path> pool(graph,wsd_graph,wsd_weights,maxdist());
+
+  // add tasks to threads in pool (round robin)
   for(i = 0; i < entities_size(); i++) {
     for(j = i+1; j <= i+maxdist() && j < entities_size(); j++) {
       for(t = 0; t < entities(i).candidates_size(); t++) {
 	for(s = 0; s < entities(j).candidates_size(); s++) {
-	  double w = alg_rel->relatedness(get_node_label(i,t), get_node_label(j,s), maxdist());
-	  if(w < DBL_MAX) {
-	    igraph_add_edge(&wsd_graph,get_node_id(i,t),get_node_id(j,s));
-	    igraph_vector_push_back (&wsd_weights, w);
-	  }
+	  rtask task = {get_node_label(i,t), get_node_label(j,s), get_node_id(i,t),get_node_id(j,s), 0.0};
+	  pool.add_task(task);
 	}
       }
     }
   }
-  delete alg_rel;
+
+  pool.join();
 
   // 2. compute centrality for each vertex and write back to
   // candidates

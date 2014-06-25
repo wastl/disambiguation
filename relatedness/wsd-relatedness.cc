@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     char *from, *to, *send;
     double r;
 
-    mico::relatedness::base* alg_rel = new mico::relatedness::shortest_path(&graph);
+    mico::relatedness::base* alg_rel = new mico::relatedness::shortest_path(&graph,3);
 
 
     printf("> ");
@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
 
       printf("computing relatedness for %s and %s ... \n",from,to);
       fflush(stdout);
-      r = alg_rel->relatedness(from,to,3);
+      r = alg_rel->relatedness(from,to);
 
       printf("relatedness = %.6f\n",r);
 

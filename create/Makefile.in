@@ -288,14 +288,13 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-threads = @threads@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # program for creating a (binary) graph representation
 wsd_create_SOURCES = wsd-create.c parse_graph.c weights_combi.c
-wsd_create_LDADD = @rdflibs@ @threads@ ../graph/libgraph.a
+wsd_create_LDADD = @rdflibs@ ../graph/libgraph.a
 all: all-am
 
 .SUFFIXES:

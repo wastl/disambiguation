@@ -635,7 +635,6 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-threads
 PROTOC
 protobuf_libs
 rdflibs
@@ -780,7 +779,6 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_profiling
-enable_threads
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1428,7 +1426,6 @@ Optional Features:
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-profiling      enable GNU gprof profiling support
   --enable-warnings       enable compile-time warnings
-  --enable-threads        enable multi-threaded computation (default is no)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -15835,43 +15832,8 @@ fi
 
 
 
-# Check whether --enable-profiling was given.
-if test "${enable_profiling+set}" = set; then :
-  enableval=$enable_profiling;
-CFLAGS="$CFLAGS -g -pg"
-CXXFLAGS="$CXXFLAGS -g -pg"
 
-$as_echo "#define PROFILING 1" >>confdefs.h
-
-
-fi
-
-
-# Check whether --enable-profiling was given.
-if test "${enable_profiling+set}" = set; then :
-  enableval=$enable_profiling;
-CFLAGS="$CFLAGS -Wall -Wextra"
-CXXFLAGS="$CXXFLAGS -Wall -Wextra"
-
-fi
-
-
-
-threads=
-# Check whether --enable-threads was given.
-if test "${enable_threads+set}" = set; then :
-  enableval=$enable_threads; ac_enable_threads=$enableval
-else
-  ac_enable_threads=no
-fi
-
-if test "$ac_enable_threads" = yes; then
-
-$as_echo "#define USE_THREADS 1" >>confdefs.h
-
-  CFLAGS="$CFLAGS -pthread"
-  CXXFLAGS="$CXXFLAGS -pthread"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lpthread" >&5
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lpthread" >&5
 $as_echo_n "checking for pthread_create in -lpthread... " >&6; }
 if ${ac_cv_lib_pthread_pthread_create+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -15908,7 +15870,12 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_create" >&5
 $as_echo "$ac_cv_lib_pthread_pthread_create" >&6; }
 if test "x$ac_cv_lib_pthread_pthread_create" = xyes; then :
-  threads=-lpthread
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBPTHREAD 1
+_ACEOF
+
+  LIBS="-lpthread $LIBS"
+
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lc_r" >&5
 $as_echo_n "checking for pthread_create in -lc_r... " >&6; }
@@ -15947,19 +15914,58 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_r_pthread_create" >&5
 $as_echo "$ac_cv_lib_c_r_pthread_create" >&6; }
 if test "x$ac_cv_lib_c_r_pthread_create" = xyes; then :
-  threads=-lc_r
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBC_R 1
+_ACEOF
+
+  LIBS="-lc_r $LIBS"
+
+else
+  as_fn_error $? "\"threading not supported on platform\"" "$LINENO" 5
 fi
 
 fi
 
+ac_fn_c_check_header_mongrel "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
+if test "x$ac_cv_header_pthread_h" = xyes; then :
+
+else
+  as_fn_error $? "\"required pthread headers are missing\"" "$LINENO" 5
+fi
+
+
+
+$as_echo "#define USE_THREADS 1" >>confdefs.h
+
+CFLAGS="$CFLAGS -pthread"
+CXXFLAGS="$CXXFLAGS -pthread"
+
+
+# Check whether --enable-profiling was given.
+if test "${enable_profiling+set}" = set; then :
+  enableval=$enable_profiling;
+CFLAGS="$CFLAGS -g -pg"
+CXXFLAGS="$CXXFLAGS -g -pg"
+
+$as_echo "#define PROFILING 1" >>confdefs.h
+
+
+fi
+
+
+# Check whether --enable-profiling was given.
+if test "${enable_profiling+set}" = set; then :
+  enableval=$enable_profiling;
+CFLAGS="$CFLAGS -Wall -Wextra"
+CXXFLAGS="$CXXFLAGS -Wall -Wextra"
+
 fi
 
 
 
 
 
-
-ac_config_files="$ac_config_files Makefile relatedness/Makefile communication/Makefile graph/Makefile create/Makefile python/Makefile src/Makefile"
+ac_config_files="$ac_config_files Makefile relatedness/Makefile disambiguation/Makefile communication/Makefile graph/Makefile create/Makefile threading/Makefile python/Makefile src/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -17085,9 +17091,11 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "relatedness/Makefile") CONFIG_FILES="$CONFIG_FILES relatedness/Makefile" ;;
+    "disambiguation/Makefile") CONFIG_FILES="$CONFIG_FILES disambiguation/Makefile" ;;
     "communication/Makefile") CONFIG_FILES="$CONFIG_FILES communication/Makefile" ;;
     "graph/Makefile") CONFIG_FILES="$CONFIG_FILES graph/Makefile" ;;
     "create/Makefile") CONFIG_FILES="$CONFIG_FILES create/Makefile" ;;
+    "threading/Makefile") CONFIG_FILES="$CONFIG_FILES threading/Makefile" ;;
     "python/Makefile") CONFIG_FILES="$CONFIG_FILES python/Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
 

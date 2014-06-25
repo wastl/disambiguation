@@ -8,5 +8,5 @@ bin_PROGRAMS = wsd-relatedness
 
 # program for computing relatedness values over the graph
 wsd_relatedness_SOURCES  = wsd-relatedness.cc
-wsd_relatedness_LDADD = @threads@ ../graph/libgraph.a librelatedness.a
+wsd_relatedness_LDADD = ../graph/libgraph.a librelatedness.a
 

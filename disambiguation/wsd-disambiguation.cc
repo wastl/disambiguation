@@ -16,12 +16,13 @@ using namespace std;
 extern "C" {
 #include "../graph/rgraph.h"
 #include "../graph/graphio.h"
-#include "network.h"
+#include "../communication/network.h"
 }
 
 #include "disambiguation.h"
-#include "worker.h"
+#include "../communication/connection.h"
 
+using namespace mico::network;
 
 void usage(char *cmd) {
   printf("Usage: %s -i fileprefix [-e edges] [-v vertices]\n", cmd);
@@ -36,7 +37,7 @@ void usage(char *cmd) {
 
 
 void* worker(void* data) {
-  WorkerConnection* wsd = (WorkerConnection*) data;
+  connection<WSDDisambiguationRequest>* wsd = (connection<WSDDisambiguationRequest>*) data;
 
 
   WSDDisambiguationRequest* req = NULL;
@@ -115,7 +116,7 @@ int main(int argc, char** argv) {
 #else
       if( (conn_fd = accept_connection(socket)) >= 0) {
 #endif
-	WorkerConnection* wsd = new WorkerConnection(conn_fd, &graph);
+	connection<WSDDisambiguationRequest>* wsd = new connection<WSDDisambiguationRequest>(conn_fd, &graph);
 
 #if defined(USE_THREADS) && !defined(PROFILING)
 	pthread_create(&wsd->thread, NULL, &worker, wsd);
@@ -125,7 +126,7 @@ int main(int argc, char** argv) {
       }
 
     } else {
-      WorkerConnection* wsd = new WorkerConnection(&graph);
+      connection<WSDDisambiguationRequest>* wsd = new connection<WSDDisambiguationRequest>(&graph);
       worker(wsd);
     }
 

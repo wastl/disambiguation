@@ -31,7 +31,7 @@ namespace mico {
        * by some implementations to limit the maximum number of edges to take into account in the
        * knowledge graph.
        */
-      virtual double relatedness(const char* from, const char* to, int max_dist) = 0;
+      virtual double relatedness(const char* from, const char* to) = 0;
 
 
     };
