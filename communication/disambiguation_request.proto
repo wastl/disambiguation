@@ -1,3 +1,6 @@
+option java_package = "eu.mico.disambiguation.client";
+option java_outer_classname = "DisambiguationProtocol";
+
 message Candidate {
   required string uri = 1;
   optional double confidence = 2;

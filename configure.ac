@@ -8,7 +8,6 @@ AM_PROG_LIBTOOL
 AC_PROG_CC_C99
 AC_PROG_CXX
 
-AM_PATH_PYTHON
 
 AC_CHECK_HEADERS([stdio.h stdarg.h time.h])
 
@@ -48,6 +47,11 @@ CXXFLAGS="$CXXFLAGS -Wall -Wextra"
 ])
 
 
+# for python client library; TODO: should be enabled/disabled
+AM_PATH_PYTHON
 
+# for Java client library; TODO: should be enabled/disabled
+AC_PATH_PROG(MVN,mvn)
+AC_SUBST(MVN)
 
-AC_OUTPUT([Makefile relatedness/Makefile disambiguation/Makefile communication/Makefile graph/Makefile create/Makefile threading/Makefile python/Makefile src/Makefile])
+AC_OUTPUT([Makefile relatedness/Makefile disambiguation/Makefile communication/Makefile graph/Makefile create/Makefile threading/Makefile python/Makefile java/Makefile src/Makefile])

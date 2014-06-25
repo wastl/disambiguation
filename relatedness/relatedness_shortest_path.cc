@@ -97,7 +97,7 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
       break;
     }
 
-
+    // process outgoing edges and vertices
     j=(long int) VECTOR(graph->graph->os)[u+1];
     for (i=(long int) VECTOR(graph->graph->os)[u]; i<j; i++) {
       eid = VECTOR(graph->graph->oi)[i];
@@ -112,6 +112,7 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
       }
     }
 
+    // process incoming edges and vertices
     j=(long int) VECTOR(graph->graph->is)[u+1];
     for (i=(long int) VECTOR(graph->graph->is)[u]; i<j; i++) {
       eid = VECTOR(graph->graph->ii)[i];
