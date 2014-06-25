@@ -82,3 +82,60 @@ A typical interaction with the tool looks as follows:
     http://dbpedia.org/resource/Germany --- http://dbpedia.org/ontology/capital --> http://dbpedia.org/resource/Berlin
     relatedness = 0.053227
 
+
+## Disambiguation Server (wsd-disambiguation)
+
+The disambiguation server is the main tool of this project. It loads a binary graph representation
+created by create_graph from disk and opens a network socket, listening for incoming connections and
+disambiguation requests.
+
+### Startup
+
+The server is started in a similar way as the relatedness tool, but requires to specify an
+additional network port to listen on:
+
+    Usage: wsd-disambiguation -i fileprefix -p port [-e edges] [-v vertices]\n", cmd);
+    Options:
+      -i fileprefix    load the data from the files with the given prefix (e.g. /data/dbpedia)
+	  -p port          tcp port to listen on for incoming requests
+      -e edges         hint on the number of edges in the graph (can improve startup performance)
+      -v vertices      hint on the number of vertices in the graph (improve startup performance)
+
+
+### Communication Protocol
+
+A disambiguation request is represented using a Google Protobuf description
+with client libraries in C++, Java and Python. The abstract protocol is defined as follows:
+
+	message Candidate {
+	    required string uri = 1;
+	    optional double confidence = 2;
+	}
+
+	message Entity {
+	    required string text = 1;
+	    repeated Candidate candidates = 2;
+	}
+
+	message DisambiguationRequest {
+	    enum CentralityAlgorithm {
+            EIGENVECTOR = 1;
+            BETWEENNESS = 2;
+            CLOSENESS   = 3;
+            PAGERANK    = 4;
+	    }
+
+	    enum RelatednessAlgorithm {
+            SHORTEST_PATH = 1;
+            MAXIMUM_FLOW  = 2;
+            PARTITION     = 3;
+	    }
+
+
+	    repeated Entity entities = 1;
+	    optional CentralityAlgorithm centrality = 2 [default = EIGENVECTOR];
+	    optional RelatednessAlgorithm relatedness = 3 [default = SHORTEST_PATH];
+	    optional int32 maxdist = 4;
+	}
+
+
