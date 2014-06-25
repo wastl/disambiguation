@@ -87,7 +87,9 @@ A typical interaction with the tool looks as follows:
 
 The disambiguation server is the main tool of this project. It loads a binary graph representation
 created by create_graph from disk and opens a network socket, listening for incoming connections and
-disambiguation requests.
+disambiguation requests. Since computing the complete disambiguation problem can be expensive
+(depending on the chosen relatedness and centrality algorithms), the server does its best to
+parallelize execution. By default, a maximum of 8 threads is started in parallel per request.
 
 ### Startup
 
@@ -138,4 +140,20 @@ with client libraries in C++, Java and Python. The abstract protocol is defined 
 	    optional int32 maxdist = 4;
 	}
 
+A disambiguation request typically consists of a list of entities (corresponding to text annotations
+in a body of text), each with a list of candidate concepts (identified by their URIs). Once
+computation is finished, the server will update the confidence values for each candidate and send
+back the whole request to the client for further processing.
 
+A disambiguation request can choose the algorithm to use for disambiguation.
+  * the relatedness algorithm defines in which way to compute the relatedness between two concepts
+    * SHORTEST_PATH: run a shortest path computation over the indexed graph (expensive!)
+	* MAXIMUM_FLOW:  run a maximum flow computation over the indexed graph (expensive!)
+	* PARTITION:     use a hierarchical graph partitioning to see how close to concepts are in the
+      graph
+  * the centrality algorithm defines how to compute confidences for each candidate in the
+    disambiguation graph
+
+Currently, only SHORTEST_PATH relatedness is implemented. The EIGENVECTOR centrality is giving the
+best results for us.
+ 
