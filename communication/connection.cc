@@ -7,31 +7,45 @@ extern "C" {
 #include "network.h"
 }
 
-mico::network::base_connection::base_connection(rgraph *graph) : conn(0), graph(graph) {
-  in = &std::cin;
-  out = &std::cout;
-}
+namespace mico {
+  namespace network {
+
+    using namespace std;
+    using namespace __gnu_cxx;
+
+    /**
+     * Create a connection for sending/receiving requests from standard input/output
+     */
+    base_connection::base_connection(rgraph *graph) : conn(0), graph(graph) {
+      in = &cin;
+      out = &cout;
+    }
+
+    /**
+     * Create a connection for sending/receiving requests from a file descriptor
+     */
+    base_connection::base_connection(int conn, rgraph *graph) : conn(conn), graph(graph) {
+      stdio_filebuf<char>* ibuf = new stdio_filebuf<char>(conn, std::ios::in);
+      in = new istream(ibuf);
+
+      stdio_filebuf<char>* obuf = new stdio_filebuf<char>(conn, std::ios::out);
+      out = new ostream(obuf);
+    }
 
 
-mico::network::base_connection::base_connection(int conn, rgraph *graph) : conn(conn), graph(graph) {
-  __gnu_cxx::stdio_filebuf<char>* ibuf = new __gnu_cxx::stdio_filebuf<char>(conn, std::ios::in);
-  in = new std::istream(ibuf);
+    base_connection::~base_connection() {
+      if(conn) {
+	delete in->rdbuf();
+	delete out->rdbuf();
 
-  __gnu_cxx::stdio_filebuf<char>* obuf = new __gnu_cxx::stdio_filebuf<char>(conn, std::ios::out);
-  out = new std::ostream(obuf);
-}
+	delete in;
+	delete out;
 
+	close_connection(conn);
+      }
 
-mico::network::base_connection::~base_connection() {
-  if(conn) {
-    delete in->rdbuf();
-    delete out->rdbuf();
+    }
 
-    delete in;
-    delete out;
-
-    close_connection(conn);
   }
-
 }
 
