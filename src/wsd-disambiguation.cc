@@ -2,7 +2,6 @@
 
 using namespace std;
 
-extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,8 +13,9 @@ extern "C" {
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "rgraph.h"
-#include "graphio.h"
+extern "C" {
+#include "../graph/rgraph.h"
+#include "../graph/graphio.h"
 #include "network.h"
 }
 

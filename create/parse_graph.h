@@ -1,8 +1,8 @@
 #ifndef HAVE_PARSE_GRAPH_H
 #define HAVE_PARSE_GRAPH_H 1
 
-#include "rgraph.h"
-#include "config.h"
+#include "../graph/rgraph.h"
+#include "../config.h"
 
 
 

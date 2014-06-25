@@ -3,12 +3,12 @@
 #include <igraph/igraph.h>
 
 extern "C" {
-#include "rgraph.h"
+#include "../graph/rgraph.h"
 }
 
 #include "disambiguation.h"
-#include "RelatednessBase.h"
-#include "RelatednessShortestPath.h"
+#include "../relatedness/relatedness_base.h"
+#include "../relatedness/relatedness_shortest_path.h"
 
 inline int ipow(int base, int exp)
 {
@@ -54,7 +54,7 @@ void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
 
   std::cout << "building dependency graph...\n";
 
-  RelatednessBase* alg_rel = new RelatednessShortestPath(graph);
+  mico::relatedness::base* alg_rel = new mico::relatedness::shortest_path(graph);
 
   // TODO: this part can easily be parallelized, especially computing
   // edge weights could benefit!

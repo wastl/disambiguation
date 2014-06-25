@@ -6,8 +6,8 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "rgraph.h"
-#include "graphio.h"
+#include "../graph/rgraph.h"
+#include "../graph/graphio.h"
 
 
 #define MODE_WEIGHTS 1

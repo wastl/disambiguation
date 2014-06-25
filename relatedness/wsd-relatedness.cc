@@ -4,8 +4,13 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "rgraph.h"
-#include "graphio.h"
+#include "relatedness_base.h"
+#include "relatedness_shortest_path.h"
+
+extern "C" {
+#include "../graph/rgraph.h"
+#include "../graph/graphio.h"
+}
 
 void usage(char *cmd) {
   printf("Usage: %s -i fileprefix [-e edges] [-v vertices]\n", cmd);
@@ -31,7 +36,7 @@ void print_path(rgraph *g, igraph_vector_t *edges) {
   }
 }
 
-void main(int argc, char** argv) {
+int main(int argc, char** argv) {
   int opt;
   char *ifile = NULL;
   long int reserve_edges = 1<<16;
@@ -69,6 +74,9 @@ void main(int argc, char** argv) {
     char *from, *to, *send;
     double r;
 
+    mico::relatedness::base* alg_rel = new mico::relatedness::shortest_path(&graph);
+
+
     printf("> ");
     fflush(stdout);
     while((getline(&line,&len,stdin) != -1)) {
@@ -86,7 +94,7 @@ void main(int argc, char** argv) {
 
       printf("computing relatedness for %s and %s ... \n",from,to);
       fflush(stdout);
-      r = rgraph_shortest_path(&graph,from,to,3);
+      r = alg_rel->relatedness(from,to,3);
 
       printf("relatedness = %.6f\n",r);
 
@@ -95,6 +103,8 @@ void main(int argc, char** argv) {
     }
 
     free(line);
+
+    delete alg_rel;
 
     destroy_rgraph(&graph);
   } else {

@@ -1,9 +1,4 @@
-#include <limits.h>
-#include <float.h>
-
-
 #include "rgraph.h"
-#include "pqueue.h"
 
 /**
  * Initialise an empty relatedness graph, ready for being updated.
@@ -37,10 +32,6 @@ void init_rgraph(rgraph *graph, int reserve_vertices, int reserve_edges) {
   pthread_mutex_init(&graph->mutex_g,NULL);
 #endif
 
-  // helper structures are initialised lazily
-  graph->sp_dist = 0;
-  graph->sp_len  = 0;
-  graph->sp_idx  = 0;
 }
 
 
@@ -103,15 +94,6 @@ void destroy_rgraph(rgraph *graph) {
   pthread_mutex_destroy(&graph->mutex_g);
 #endif
 
-  if(graph->sp_idx) {
-    free(graph->sp_idx);
-  }
-  if(graph->sp_dist) {
-    free(graph->sp_dist);
-  }
-  if(graph->sp_len) {
-    free(graph->sp_len);
-  }
 }
 
 
@@ -173,90 +155,3 @@ char* rgraph_has_prefix(rgraph *graph, const char* uri, char** pos) {
 
 
 
-/**
- * Compute shortest path from one entity to the other, following at most max_dist edges
- */
-double rgraph_shortest_path(rgraph *graph, const char* sfrom, const char* sto, int max_dist) {
-  int i, u, v, x, y;
-
-  int eid;
-
-  double r, alt;
-
-  int from = rgraph_get_vertice_id(graph,sfrom);
-  int to   = rgraph_get_vertice_id(graph,sto);
-
-  if(from == -1 || to == -1) {
-    return DBL_MAX;
-  }
-
-  if(!graph->sp_dist) {
-    graph->sp_dist = malloc(graph->num_vertices * sizeof(double));
-  }
-  if(!graph->sp_idx) {
-    graph->sp_idx = malloc(graph->num_vertices * sizeof(int));
-  }
-  if(!graph->sp_len) {
-    graph->sp_len = malloc(graph->num_vertices * sizeof(int));
-  }
-
-  double*  dist = graph->sp_dist;
-  int*     idx  = graph->sp_idx;
-  int*     len  = graph->sp_len;
-
-  pqueue_t queue;
-  pq_init(&queue,graph->num_vertices, dist,idx);
-
-  dist[from] = 0.0;
-  len[from]  = 0;
-  for(i=0; i<graph->num_vertices; i++) {
-    if(i != from) {
-      dist[i] = DBL_MAX;
-      len[i]  = INT_MAX;
-    }
-    pq_insert(&queue, i);
-  }
-  
-  while(!pq_empty(&queue)) {
-    u = pq_first(&queue);
-
-    if(u == to || len[u] > max_dist) {
-      break;
-    }
-
-    igraph_es_t es;
-    igraph_es_incident(&es,u,IGRAPH_ALL);
-
-    igraph_eit_t eit;
-    igraph_eit_create(graph->graph, es, &eit);
-
-
-    while(!IGRAPH_EIT_END(eit)) {
-      eid = IGRAPH_EIT_GET(eit);
-
-      igraph_edge(graph->graph, eid, &x, &y); 
-      v = x == u ? y : x;
-      
-      alt = dist[u] + igraph_vector_e(graph->weights,eid);
-      if(alt < dist[v] && len[u] + 1 <= max_dist) {
-	dist[v] = alt;
-	len[v]  = len[u] + 1;
-	pq_decrease(&queue,v);
-      }
-
-      IGRAPH_EIT_NEXT(eit);
-    }
-
-    igraph_eit_destroy(&eit);
-    igraph_es_destroy(&es);
-  }
-
-  r = dist[to];
-
-  pq_destroy(&queue);
-  //  free(dist);
-  //  free(idx);
-  //  free(len);
-
-  return r;
-}

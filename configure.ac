@@ -8,6 +8,8 @@ AM_PROG_LIBTOOL
 AC_PROG_CC_C99
 AC_PROG_CXX
 
+AM_PATH_PYTHON
+
 AC_CHECK_HEADERS([stdio.h stdarg.h time.h])
 
 AC_CHECK_LIB(igraph, igraph_tree, , AC_MSG_ERROR("required igraph library is missing"))
@@ -55,4 +57,4 @@ AC_SUBST(threads)
 
 
 
-AC_OUTPUT([Makefile src/Makefile])
+AC_OUTPUT([Makefile relatedness/Makefile communication/Makefile graph/Makefile create/Makefile python/Makefile src/Makefile])

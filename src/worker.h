@@ -6,7 +6,7 @@
 #include "disambiguation.h"
 
 extern "C" {
-#include "rgraph.h"
+#include "../graph/rgraph.h"
 }
 
 

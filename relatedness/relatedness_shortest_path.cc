@@ -1,10 +1,10 @@
 #include <limits.h>
 #include <float.h>
 
-#include "RelatednessShortestPath.h"
+#include "relatedness_shortest_path.h"
 
 // constructor: initialise helper structures
-RelatednessShortestPath::RelatednessShortestPath(rgraph* graph) : RelatednessBase(graph) {
+mico::relatedness::shortest_path::shortest_path(rgraph* graph) : mico::relatedness::base(graph) {
   dist = new double[graph->num_vertices];
   idx =  new int[graph->num_vertices];
   len =  new int[graph->num_vertices];
@@ -13,7 +13,7 @@ RelatednessShortestPath::RelatednessShortestPath(rgraph* graph) : RelatednessBas
 }
 
 // destructor: free helper structures
-RelatednessShortestPath::~RelatednessShortestPath() {
+mico::relatedness::shortest_path::~shortest_path() {
   pq_destroy(&queue);
   delete[] dist;
   delete[] idx;
@@ -21,7 +21,7 @@ RelatednessShortestPath::~RelatednessShortestPath() {
 }
 
 
-double RelatednessShortestPath::relatedness(const char* sfrom, const char* sto, int max_dist) {
+double mico::relatedness::shortest_path::relatedness(const char* sfrom, const char* sto, int max_dist) {
 
   int i, u, v, x, y;
 
@@ -44,6 +44,8 @@ double RelatednessShortestPath::relatedness(const char* sfrom, const char* sto, 
       dist[i] = DBL_MAX;
       len[i]  = INT_MAX;
     }
+    // TODO: it would be clever to insert vertices not in ID order but wrt distance from the from
+    // node; this would significantly reduce the time needed by fixUp
     pq_insert(&queue, i);
   }
   

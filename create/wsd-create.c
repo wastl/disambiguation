@@ -22,8 +22,8 @@
 #endif
 
 
-#include "rgraph.h"
-#include "graphio.h"
+#include "../graph/rgraph.h"
+#include "../graph/graphio.h"
 #include "parse_graph.h"
 #include "weights_combi.h"
 
@@ -110,7 +110,7 @@ void process_file(void* data) {
   free(attrs);
 }
 
-void main(int argc, char** argv) {
+int main(int argc, char** argv) {
   int opt, i;
   int mode = 0;
   char *ofile, *ifile;
@@ -242,4 +242,6 @@ void main(int argc, char** argv) {
 #ifdef USE_THREADS
   pthread_exit(NULL);
 #endif
+
+  return 0;
 }

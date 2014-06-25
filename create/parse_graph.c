@@ -4,7 +4,7 @@
 #include <float.h>
 #include <raptor2/raptor2.h>
 
-#include "rgraph.h"
+#include "../graph/rgraph.h"
 #include "parse_graph.h"
 
 

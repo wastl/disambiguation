@@ -1,7 +1,7 @@
 #ifndef HAVE_WEIGHTS_COMBI_H
 #define HAVE_WEIGHTS_COMBI_H 1
 
-#include "rgraph.h"
+#include "../graph/rgraph.h"
 
 /**
  * Compute the edge weights according to the combined information content as described in

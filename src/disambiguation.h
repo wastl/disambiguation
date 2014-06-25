@@ -3,10 +3,10 @@
 
 #include <iostream>
 
-#include "proto-disambiguation.pb.h"
+#include "../communication/disambiguation_request.pb.h"
 
 extern "C" {
-#include "rgraph.h"
+#include "../graph/rgraph.h"
 }
 
 // precision for relatedness values (for rounding)

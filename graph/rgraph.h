@@ -10,7 +10,7 @@
 #include <string.h>
 #include <igraph/igraph.h>
 #include "khash.h"
-#include "config.h"
+#include "../config.h"
 
 
 #define ATTR_LABEL "l"
@@ -32,11 +32,6 @@ typedef struct rgraph {
   pthread_rwlock_t mutex_v;      /* vertice mutex */
   pthread_mutex_t  mutex_g;      /* graph mutex  */
 #endif
-
-  // helper structures (not thread safe!)
-  double* sp_dist;
-  int*    sp_len;
-  int*    sp_idx;
 } rgraph;
 
 
@@ -97,12 +92,6 @@ void rgraph_add_prefix(rgraph *graph, const char* uri);
  */
 char* rgraph_has_prefix(rgraph *graph, const char* uri, char** pos);
 
-
-/**
- * Compute shortest path from one entity to the other, stopping when the given maximum distance is
- * exceeded (in which case DBL_MAX is returned)
- */
-double rgraph_shortest_path(rgraph *graph, const char* from, const char* to, int max_dist);
 
 
 #endif
