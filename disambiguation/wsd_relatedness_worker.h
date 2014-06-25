@@ -36,14 +36,14 @@ namespace mico {
       class relatedness_worker : public virtual mico::threading::thread {
 
       private:
+	int id;
 
-	mico::relatedness::base* state;
 	relatedness_threadpool_base* pool;
 
       public:
 
-	relatedness_worker(mico::relatedness::base* state, relatedness_threadpool_base* pool) 
-	  : mico::threading::thread(), state(state), pool(pool) {};
+	relatedness_worker(int id, relatedness_threadpool_base* pool) 
+	  : mico::threading::thread(), id(id), pool(pool) {};
 
 
 	/**

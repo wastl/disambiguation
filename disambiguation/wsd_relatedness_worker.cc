@@ -8,7 +8,6 @@
 #include "wsd_relatedness_worker.h"
 
 void mico::disambiguation::wsd::relatedness_worker::run() {
-  std::queue<rtask> processed;
 
   // loop until queue of thread pool is empty
   while(1) {
@@ -18,8 +17,15 @@ void mico::disambiguation::wsd::relatedness_worker::run() {
       pool->tasks.pop();
       pthread_mutex_unlock(&pool->tsk_mutex);
 
-      t.relatedness = state->relatedness(t.from, t.to);
-      processed.push(t);
+      t.relatedness = pool->states[id]->relatedness(t.from, t.to);
+
+      if(t.relatedness < DBL_MAX) {
+	pthread_mutex_lock(&pool->wsd_mutex);
+	igraph_add_edge(&pool->wsd_graph,t.fromId,t.toId);
+	igraph_vector_push_back (&pool->wsd_weights, t.relatedness);
+	pthread_mutex_unlock(&pool->wsd_mutex);
+      }
+
       
     } else {
       pthread_mutex_unlock(&pool->tsk_mutex);
@@ -28,18 +34,6 @@ void mico::disambiguation::wsd::relatedness_worker::run() {
     
   }
 
-    // add results to graph
-  pthread_mutex_lock(&pool->wsd_mutex);
-  while(!processed.empty()) {
-    rtask t = processed.front();
-
-    if(t.relatedness < DBL_MAX) {
-      igraph_add_edge(&pool->wsd_graph,t.fromId,t.toId);
-      igraph_vector_push_back (&pool->wsd_weights, t.relatedness);
-    }
-    processed.pop();
-  }
-  pthread_mutex_unlock(&pool->wsd_mutex);
 
 }
 
@@ -74,7 +68,7 @@ void mico::disambiguation::wsd::relatedness_threadpool_base::start()  {
     // create threads and states
     for(int i=0; i<NUM_THREADS; i++) {
       states[i] = create_algorithm();
-      pool[i]   = new relatedness_worker(states[i],this);
+      pool[i]   = new relatedness_worker(i,this);
     }
     initialised = true;
   }

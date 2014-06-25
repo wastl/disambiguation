@@ -76,6 +76,7 @@ void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
     }
   }
 
+  pool.start();
   pool.join();
 
   // 2. compute centrality for each vertex and write back to

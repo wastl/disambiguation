@@ -25,21 +25,14 @@ mico::relatedness::shortest_path::~shortest_path() {
 }
 
 // BFS to look for all vertices up to a certain distance
-inline void collect(rgraph* graph, int fromId, pqueue_t* queue, int depth) {
-  int eid, v, x, y;
-
-  igraph_es_t es;
-  igraph_es_incident(&es,fromId,IGRAPH_ALL);
-
-  igraph_eit_t eit;
-  igraph_eit_create(graph->graph, es, &eit);
+inline void collect(rgraph* graph, int node, pqueue_t* queue, int depth) {
+  long int i, j, v;
 
 
-  while(!IGRAPH_EIT_END(eit)) {
-    eid = IGRAPH_EIT_GET(eit);
-
-    igraph_edge(graph->graph, eid, &x, &y); 
-    v = x == fromId ? y : x;
+  // copied partly from igraph type_indexededgelist.c
+  j=(long int) VECTOR(graph->graph->os)[node+1];
+  for (i=(long int) VECTOR(graph->graph->os)[node]; i<j; i++) {
+    v   = VECTOR(graph->graph->to)[  (long int)VECTOR(graph->graph->oi)[i] ];
 
     if(queue->indexes[v] == 0) {
       pq_insert(queue, v);
@@ -47,17 +40,27 @@ inline void collect(rgraph* graph, int fromId, pqueue_t* queue, int depth) {
 	collect(graph, v, queue, depth-1);
       }
     }
-
-    IGRAPH_EIT_NEXT(eit);
   }
 
-  igraph_eit_destroy(&eit);
-  igraph_es_destroy(&es);    
+  j=(long int) VECTOR(graph->graph->is)[node+1];
+  for (i=(long int) VECTOR(graph->graph->is)[node]; i<j; i++) {
+    v   = VECTOR(graph->graph->from)[ (long int)VECTOR(graph->graph->ii)[i] ];
+    
+    if(queue->indexes[v] == 0) {
+      pq_insert(queue, v);
+      if(depth > 1) {
+	collect(graph, v, queue, depth-1);
+      }
+    }
+  }
+
+
 }
 
 double mico::relatedness::shortest_path::relatedness(const char* sfrom, const char* sto) {
+  long int i, j;
 
-  int i, u, v, x, y;
+  int u, v, x, y;
 
   int eid;
 
@@ -97,20 +100,13 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
       break;
     }
 
-    igraph_es_t es;
-    igraph_es_incident(&es,u,IGRAPH_ALL);
 
-    igraph_eit_t eit;
-    igraph_eit_create(graph->graph, es, &eit);
+    j=(long int) VECTOR(graph->graph->os)[u+1];
+    for (i=(long int) VECTOR(graph->graph->os)[u]; i<j; i++) {
+      eid = VECTOR(graph->graph->oi)[i];
+      v   = VECTOR(graph->graph->to)[(long int)eid];
 
-
-    while(!IGRAPH_EIT_END(eit)) {
-      eid = IGRAPH_EIT_GET(eit);
-
-      igraph_edge(graph->graph, eid, &x, &y); 
-      v = x == u ? y : x;
-      
-      alt = dist[u] + igraph_vector_e(graph->weights,eid);
+      alt = dist[u] + VECTOR(*graph->weights)[eid];
       if(alt < dist[v] && len[u] + 1 <= max_dist) {
 	dist[v] = alt;
 	len[v]  = len[u] + 1;
@@ -118,15 +114,24 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
 	  pq_decrease(&queue,v);
 	}
       }
-      
-
-      IGRAPH_EIT_NEXT(eit);
     }
 
-    igraph_eit_destroy(&eit);
-    igraph_es_destroy(&es);
-  }
+    j=(long int) VECTOR(graph->graph->is)[u+1];
+    for (i=(long int) VECTOR(graph->graph->is)[u]; i<j; i++) {
+      eid = VECTOR(graph->graph->ii)[i];
+      v   = VECTOR(graph->graph->from)[(long int)eid];
+      
 
+      alt = dist[u] + VECTOR(*graph->weights)[eid];
+      if(alt < dist[v] && len[u] + 1 <= max_dist) {
+	dist[v] = alt;
+	len[v]  = len[u] + 1;
+	if(queue.indexes[v] != 0) { // only decrease if the value is actually in the queue
+	  pq_decrease(&queue,v);
+	}
+      }
+    }
+  }
   pq_clear(&queue);
 
   return dist[to];
