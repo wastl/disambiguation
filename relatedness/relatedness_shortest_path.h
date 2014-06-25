@@ -23,7 +23,6 @@ namespace mico {
       pqueue_t queue;
 
       double* dist;
-      int*    len;
       int*    idx;
 
     public:

@@ -11,7 +11,6 @@
 mico::relatedness::shortest_path::shortest_path(rgraph* graph, int max_dist) : mico::relatedness::base(graph), max_dist(max_dist) {
   dist = new double[graph->num_vertices];
   idx =  new int[graph->num_vertices];
-  len =  new int[graph->num_vertices];
 
   pq_init(&queue,graph->num_vertices, dist,idx);
 }
@@ -21,7 +20,6 @@ mico::relatedness::shortest_path::~shortest_path() {
   pq_destroy(&queue);
   delete[] dist;
   delete[] idx;
-  delete[] len;  
 }
 
 // BFS to look for all vertices up to a certain distance
@@ -58,29 +56,28 @@ inline void collect(rgraph* graph, int node, pqueue_t* queue, int depth) {
 }
 
 double mico::relatedness::shortest_path::relatedness(const char* sfrom, const char* sto) {
-  long int i, j;
-
-  int u, v, x, y;
-
-  int eid;
+  long int i, j, u, v, eid;
 
   double alt;
 
   int from = rgraph_get_vertice_id(graph,sfrom);
   int to   = rgraph_get_vertice_id(graph,sto);
 
-  if(from == -1 || to == -1) {
+  if(from == -1 || to == -1 || from >= graph->num_vertices || to >= graph->num_vertices) {
     return DBL_MAX;
   }
 
+  // clear index before starting computation
   bzero(idx, graph->num_vertices * sizeof(int));
 
+  // clear queue before starting computation
+  pq_clear(&queue);
+
+  // initialise distances 
   dist[from] = 0.0;
-  len[from]  = 0;
   for(i=0; i<graph->num_vertices; i++) {
     if(i != from) {
       dist[i] = DBL_MAX;
-      len[i]  = INT_MAX;
     }
   }
 
@@ -96,7 +93,7 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
   while(!pq_empty(&queue)) {
     u = pq_first(&queue);
 
-    if(u == to || len[u] > max_dist) {
+    if(u == to) {
       break;
     }
 
@@ -107,9 +104,8 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
       v   = VECTOR(graph->graph->to)[(long int)eid];
 
       alt = dist[u] + VECTOR(*graph->weights)[eid];
-      if(alt < dist[v] && len[u] + 1 <= max_dist) {
+      if(alt < dist[v]) {
 	dist[v] = alt;
-	len[v]  = len[u] + 1;
 	if(queue.indexes[v] != 0) { // only decrease if the value is actually in the queue
 	  pq_decrease(&queue,v);
 	}
@@ -123,16 +119,14 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
       
 
       alt = dist[u] + VECTOR(*graph->weights)[eid];
-      if(alt < dist[v] && len[u] + 1 <= max_dist) {
+      if(alt < dist[v]) {
 	dist[v] = alt;
-	len[v]  = len[u] + 1;
 	if(queue.indexes[v] != 0) { // only decrease if the value is actually in the queue
 	  pq_decrease(&queue,v);
 	}
       }
     }
   }
-  pq_clear(&queue);
 
   return dist[to];
 }
