@@ -13,7 +13,30 @@ extern "C" {
 #include "../graph/rgraph.h"
 }
 
-
+/**
+ * This module implements a multi-threaded computation of relatedness values using a fixed-size
+ * thread pool. Since we intend to support different relatedness algorithms, the main threadpool
+ * class is a template class with a single method for creating new instances of the relatedness
+ * algorithm. In case the standard constructor is not applicable for a certain algorithm, custom
+ * subclassing of relatedness_threadpool_base is also possible.
+ *
+ * Usage:
+ *   // create new pool for a given WSD graph and weights vector
+ *   relatedness_threadpool<shortest_path> pool(graph,wsd_graph,wsd_weights,maxdist());
+ *  
+ *   // add relatedness tasks to the shared queue	  
+ *   rtask task = {get_node_label(i,t), get_node_label(j,s), get_node_id(i,t),get_node_id(j,s), 0.0};
+ *   pool.add_task(task);
+ *
+ *   // start execution
+ *   pool.start();
+ *
+ *   // wait for completion
+ *   pool.join()
+ * 
+ *   // reset for next executions
+ *   pool.reset()
+ */
 namespace mico {
   namespace disambiguation {
 
@@ -108,6 +131,10 @@ namespace mico {
       };
 
 
+      /**
+       * Templated relatedness_threadpool for algorithms with a constructor of the form 
+       * C(rgraph* g, int max_dist)
+       */
       template <class A> class relatedness_threadpool : public virtual relatedness_threadpool_base {
       private:
 
