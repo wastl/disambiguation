@@ -5,6 +5,8 @@
  * tools. 
  */
 
+#include <iostream>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -16,14 +18,12 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-#ifdef USE_THREADS
 #include <pthread.h>
 #include <semaphore.h>
-#endif
 
 
 #include "../graph/rgraph.h"
-#include "../graph/graphio.h"
+#include "../threading/thread.h"
 #include "parse_graph.h"
 #include "weights_combi.h"
 
@@ -34,15 +34,76 @@
 
 
 // internal representation of an RDF file
-typedef struct rdffile {
+struct rdffile {
   const char* filename;
   const char* format;
-#ifdef USE_THREADS
   sem_t       *thread_s;
-#endif
-} rdffile;
 
-static rgraph graph;
+  rdffile(const char* filename, const char* format, sem_t* thread_s) : filename(filename), format(format), thread_s(thread_s) {};
+};
+
+
+using namespace mico::graph;
+using namespace mico::graph::rdf;
+using namespace mico::graph::weights;
+using namespace mico::threading;
+
+static rgraph_weights_combi graph;
+
+
+/**
+ * Process a single RDF input file. MMaps the file into memory, then calls parse_graph on the loaded data.
+ */
+class file_processor : public virtual thread {
+
+  const char* filename;
+  const char* format;
+  sem_t       *thread_s;
+
+public:
+
+  file_processor(const char* filename, const char* format, sem_t* thread_s) : thread(), filename(filename), format(format), thread_s(thread_s) {};
+
+  void run() {
+    unsigned char *result;
+    unsigned int len;
+    clock_t start, end;
+    int fd;
+
+    struct stat buf;
+
+    sem_wait(thread_s);
+    std::cout << "parsing RDF file " << filename << " ... \n";
+
+    start = clock();
+
+    // mmap file into memory
+    fd = open(filename,O_RDONLY);
+    if (fd < 0) {
+      std::cerr << "Error: Unable to read dictionary file " << filename << "\n";
+      return;
+    }
+    if (fstat(fd,&buf) < 0) {
+      std::cerr << "Error: Unable to determine file size\n";
+      return;
+    }
+    len = (unsigned int)buf.st_size;
+    result = (unsigned char*)mmap(0,len,PROT_READ,MAP_FILE|MAP_PRIVATE,fd,0);
+
+    parser p(graph,format,"http://localhost/");
+
+    p.parse(result, len);
+
+    munmap(result,len);
+    close(fd);
+    end = clock();
+
+    std::cout << "RDF file " << filename << " done (" << ((end-start) * 1000 / CLOCKS_PER_SEC)  << " ms)!\n";
+    sem_post(thread_s);
+
+  };
+
+};
 
 
 void usage(char *cmd) {
@@ -59,73 +120,24 @@ void usage(char *cmd) {
 }
 
 
-/**
- * Process a single RDF input file. MMaps the file into memory, then calls parse_graph on the loaded data.
- */
 void process_file(void* data) {
-  unsigned char *result;
-  unsigned int len;
-  clock_t start, end;
-  rdffile *attrs = (rdffile*)data;
-  int fd;
-
-  struct stat buf;
-
-#ifdef USE_THREADS
-  sem_wait(attrs->thread_s);
-  printf("parsing RDF file %s ... \n", attrs->filename);
-#else
-  printf("parsing RDF file %s ... ", attrs->filename);
-  fflush(stdout);
-#endif
-
-  start = clock();
-
-  // mmap file into memory
-  fd = open(attrs->filename,O_RDONLY);
-  if (fd < 0) {
-    fprintf(stderr,"Error: Unable to read dictionary file %s\n",attrs->filename);
-    return;
-  }
-  if (fstat(fd,&buf) < 0) {
-    fprintf(stderr,"Error: Unable to determine file size\n");
-    return;
-  }
-  len = (unsigned int)buf.st_size;
-  result = (unsigned char*)mmap(0,len,PROT_READ,MAP_FILE|MAP_PRIVATE,fd,0);
-
-  parse_graph(&graph, result, len, attrs->format, "http://localhost/");
-
-  munmap(result,len);
-  close(fd);
-  end = clock();
-
-#ifdef USE_THREADS
-  printf("RDF file %s done (%d ms)!\n", attrs->filename, (end-start) * 1000 / CLOCKS_PER_SEC);
-  sem_post(attrs->thread_s);
-#else
-  printf("done (%d ms)!\n", (end-start) * 1000 / CLOCKS_PER_SEC);
-#endif
-
-  free(attrs);
 }
 
 int main(int argc, char** argv) {
+  const char *format = "rdfxml";
+
   int opt, i;
   int mode = 0;
   char *ofile, *ifile;
-  char *format = "rdfxml";
   clock_t start, end;
   int reserve_edges = 1<<16;
   int reserve_vertices = 1<<12;
 
-#ifdef USE_THREADS
   int num_threads = NUM_THREADS;
 
-  pthread_t* threads;    // an array of thread descriptors
-  sem_t      thread_s;   // a semaphore for restricting the maximum number of threads running in
-			 // parallel (poor man's thread pool)
-#endif
+  file_processor** threads;    // an array of thread descriptors
+  sem_t            thread_s;   // a semaphore for restricting the maximum number of threads running in
+                               // parallel (poor man's thread pool)
 
 
   // read options from command line
@@ -149,16 +161,14 @@ int main(int argc, char** argv) {
       format = optarg;
       break;
     case 'e':
-      sscanf(optarg,"%ld",&reserve_edges);;
+      reserve_edges = atoi(optarg);
       break;
     case 'v':
-      sscanf(optarg,"%ld",&reserve_vertices);;
+      reserve_edges = atoi(optarg);
       break;
-#ifdef USE_THREADS
     case 't':
-      sscanf(optarg,"%d",&num_threads);
+      num_threads = atoi(optarg);
       break;
-#endif
     default:
       usage(argv[0]);
     }
@@ -169,79 +179,62 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-#ifdef USE_THREADS
   sem_init(&thread_s,0,num_threads);
-#endif
 
 
 
   // init empty graph
-  init_rgraph(&graph, reserve_vertices, reserve_edges);
+  graph.reserve_vertices(reserve_vertices);
+  graph.reserve_edges(reserve_edges);
+
+  
 
   // 1. restore existing dump in case -i is given
   if(mode & MODE_RESTORE) { 
-    restore_graph(&graph,ifile);
+    graph.restore_file(ifile);
   }
 
   // 2. add the new RDF files to the graph, using multi-threading if enabled
-#ifdef USE_THREADS
   int thread_count = (argc-optind);
-  threads = malloc ( thread_count * sizeof(pthread_t) );
-  i=0;
-#endif
-
-  for(; optind < argc; optind++) {
-    rdffile *attrs = malloc(sizeof(rdffile));
-    attrs->filename = argv[optind];
-    attrs->format   = format;
-
-#ifndef USE_THREADS
-    process_file(attrs);
-#else
-    attrs->thread_s = &thread_s;
-    pthread_create(&threads[i++], NULL, &process_file, attrs);
-    
-#endif
+  threads = new file_processor*[thread_count];
+  for(i=0; optind < argc; optind++, i++) {
+    threads[i] = new file_processor(argv[optind], format, &thread_s);
+    threads[i]->start();
   }
 
-#ifdef USE_THREADS
   // wait for all threads to finish computation
   for(i = 0; i<thread_count; i++) {
-    pthread_join(threads[i],NULL);
+    threads[i]->join();
   }
-#endif
 
   // 3. compute edge weights according to selected algorithm (currently only "combi")
   if(mode & MODE_WEIGHTS) { 
     start = clock();
-    printf("computing edge weights ... ");
-    fflush(stdout);
-    compute_weights_combi(&graph);
+    std::cout << "computing edge weights ... ";
+    std::cout.flush();
+
+    graph.compute_weights();
     end = clock();
-    printf("done (%d ms)!\n", (end-start) * 1000 / CLOCKS_PER_SEC);
+
+    std::cout << "done (" << ((end-start) * 1000 / CLOCKS_PER_SEC) << "ms)!\n";
   }
 
 
   // 4. write out results to the dump files
   if(mode & MODE_DUMP) { 
-    dump_graph(&graph,ofile);
+    graph.dump_file(ofile);
   }
 
 		 
   // 5. print some statistics about the processed graph
   if(mode & MODE_PRINT) {   
-    printf("Total number of vertices: %d\n",graph.num_vertices);
-
-    printf("number of vertices: %d\n", igraph_vcount(graph.graph));
-    printf("number of edges: %d\n", igraph_ecount(graph.graph));
+    std::cout << "number of vertices: " << graph.vertice_count() << "\n";
+    std::cout << "number of edges: "    << graph.edge_count() << "\n";
 
   }
 
-  destroy_rgraph(&graph);
 
-#ifdef USE_THREADS
   pthread_exit(NULL);
-#endif
 
   return 0;
 }

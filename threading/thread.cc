@@ -13,8 +13,6 @@ void mico::threading::thread::cleaner(void * t) {
 void * mico::threading::thread::runner(void * t) {
   mico::threading::thread* _thread = (mico::threading::thread*)t;
 
-  _thread->state = RUNNING;
-
   pthread_cleanup_push(&cleaner, _thread);
   _thread->run();
   pthread_cleanup_pop(0);
@@ -31,6 +29,7 @@ void * mico::threading::thread::runner(void * t) {
 
 void mico::threading::thread::start() {  
   if(state == CREATED) {
+    state = RUNNING;
     int s = pthread_create(&_thread, NULL, &runner, this);
     if(s != 0) {
       errno = s; perror("error creating thread"); exit(1);
