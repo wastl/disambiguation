@@ -19,6 +19,9 @@
 
 KHASH_MAP_INIT_STR(uris, int)
 
+// 200 bit vector for hierarchical cluster assignment
+typedef char* bitvector;
+
 typedef struct rgraph {
   igraph_t        *graph;       /* IGraph representing the triples */
   kh_uris_t       *uris;        /* map from URIs to vertice IDs */
@@ -28,10 +31,12 @@ typedef struct rgraph {
   int             num_prefixes; /* number of predefined prefixes */
   igraph_vector_t *labels;      /* vector containing edge labels (property node IDs) */
   igraph_vector_t *weights;     /* vector containing edge weights */
+  bitvector       *clusters;    /* array containing a bitvector for each vertice to be used for
+				   storing which clusters a node belongs to */
 #ifdef USE_THREADS
   pthread_rwlock_t mutex_v;      /* vertice mutex */
   pthread_mutex_t  mutex_g;      /* graph mutex  */
-#endif
+#endif  
 } rgraph;
 
 
