@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <ext/stdio_filebuf.h>
-
+#include <arpa/inet.h>
 
 #include "disambiguation_request.pb.h"
 
@@ -90,13 +90,14 @@ namespace mico {
 
 
 template <class R> mico::network::connection<R>& mico::network::connection<R>::operator<<(R &r) {
-  int length = r.ByteSize();
+  uint32_t length = r.ByteSize();
+  uint32_t hlength = htonl(length);
   std::cout << "sending a response of "<<length<<" bytes ...\n";
 
   char buf[length];
   r.SerializeToArray(buf,length);
 
-  out->write((char*)&length, sizeof(int));
+  out->write((char*)&hlength, sizeof(int));
   out->write(buf,length);
   out->flush();
 
@@ -108,14 +109,14 @@ template <class R> mico::network::connection<R>& mico::network::connection<R>::o
 
   if( !in->eof() ) {
     // read length of next message
-    int length;
-    *in >> length;
+    uint32_t length;
+    in->read((char*)&length, sizeof(int));
 
     char buf[length];  
-    in->read(buf,length);
+    in->read(buf,ntohl(length));
 
     if(*in) {
-      r.ParseFromArray(buf, length);
+      r.ParseFromArray(buf, ntohl(length));
     }
   }
   return *this;
@@ -129,17 +130,17 @@ template <class R> R* mico::network::connection<R>::nextRequest() {
   }
 
   // read length of next message
-  int length;
-  *in >> length;
+  uint32_t length;
+  in->read((char*)&length, sizeof(int));
 
-  char buf[length];  
-  in->read(buf,length);
+  char buf[ntohl(length)];  
+  in->read(buf,ntohl(length));
 
-  std::cout << "reading in next message of " << length << " bytes\n";
+  std::cout << "reading in next message of " << ntohl(length) << " bytes\n";
 
   if(*in) {
     R* r = new R(); 
-    if(r->ParseFromArray(buf, length)) {
+    if(r->ParseFromArray(buf, ntohl(length))) {
       return r;
     } else {
       delete r;

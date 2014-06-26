@@ -12,5 +12,5 @@ clean-local:
 	rm -f src/main/java/eu/mico/disambiguation/client/DisambiguationProtocol.java
 
 install-exec-local: src/main/java/eu/mico/disambiguation/client/DisambiguationProtocol.java
-	$(MVN) install
+	$(MVN) install -DskipTests
 

@@ -1,5 +1,6 @@
 AC_INIT(wsd-disambiguation,1.0,sschaffert@apache.org)
 AM_INIT_AUTOMAKE
+AC_CONFIG_MACRO_DIRS([m4])
 
 LT_INIT
 AC_PROG_LIBTOOL
@@ -9,6 +10,7 @@ AC_PROG_CC_C99
 AC_PROG_CXX
 
 
+# C headers and libraries
 AC_CHECK_HEADERS([stdio.h stdarg.h time.h])
 
 AC_CHECK_LIB(igraph, igraph_tree, , AC_MSG_ERROR("required igraph library is missing"))
@@ -21,8 +23,14 @@ AC_SUBST(rdflibs)
 AC_CHECK_LIB(m,log, , AC_MSG_ERROR("required math library is missing"))
 AC_CHECK_HEADER(math.h, , AC_MSG_ERROR("required math headers are missing"))
 
-AC_CHECK_LIB(protobuf,_ZN6google8protobuf14MessageFactory17generated_factoryEv, protobuf_libs="-lprotobuf", AC_MSG_ERROR("protobuf library is missing"))
+# c++ headers and libraries
+AC_LANG_PUSH([C++])
+
+#AC_CHECK_HEADER(boost/heap/fibonacci_heap.hpp, , AC_MSG_ERROR("required boost fibonacci heap missing (install boost library!)"))
+AC_CHECK_HEADERS([google/protobuf/stubs/common.h google/protobuf/generated_message_util.h google/protobuf/message.h google/protobuf/repeated_field.h], protobuf_libs="-lprotobuf", AC_MSG_ERROR("protobuf library is missing"))
 AC_SUBST(protobuf_libs)
+
+AC_LANG_POP([C++])
 
 AC_PATH_PROG(PROTOC,protoc)
 AC_SUBST(PROTOC)
