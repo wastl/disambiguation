@@ -74,6 +74,12 @@ int main(int argc, char** argv) {
 
     }
 
+    if(mode & MODE_LABELS) {
+      printf("Hash Keys:\n");
+      const char* key; int v;
+      kh_foreach(graph.uris,key, v, printf("%s; %d\n", key, v); );
+
+    }
 
     return 0;
   } else {

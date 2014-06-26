@@ -113,6 +113,7 @@ namespace mico {
       std::cout.flush();
       
       int i, id, len, err;
+      khiter_t k;
       for(i=0; i<vcount; i++) {
 	is.read((char*)&id,sizeof(int));
 	is.read((char*)&len,sizeof(int));
@@ -120,7 +121,8 @@ namespace mico {
 	vertices[i] = (char*)malloc( (len+1) * sizeof(char));
 	is.read(vertices[i], len);
 	vertices[i][len]='\0';
-	kh_put(uris, uris, vertices[i], &err);
+	k = kh_put(uris, uris, vertices[i], &err);
+	kh_val(uris, k) = id;
       }
       std::cout << i << " URIs!\n";
 

@@ -92,8 +92,6 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
     collect(from,max_dist); 
   }
   
-  std::cout << "Queue Size: " << queue.size << "\n";
-
   while(!pq_empty(&queue)) {
     u = pq_first(&queue);
 

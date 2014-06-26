@@ -41,11 +41,12 @@ namespace mico {
       igraph_vector_t *weights;     /* vector containing edge weights */
       igraph_vector_t *labels;      /* vector containing edge labels (property node IDs) */
 
+      kh_uris_t       *uris;        /* map from URIs to vertice IDs */
+
     protected:
       friend class mico::graph::rdf::parser;
       friend class mico::relatedness::shortest_path;
 
-      kh_uris_t       *uris;        /* map from URIs to vertice IDs */
       char            **prefixes;   /* list of commonly used prefixes (for shortening URIs) */
 
       pthread_rwlock_t mutex_v;      /* vertice mutex */
