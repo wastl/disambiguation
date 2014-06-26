@@ -7,8 +7,8 @@
 #include <time.h>
 
 #include "../graph/rgraph.h"
-#include "../graph/graphio.h"
 
+using namespace mico::graph;
 
 void usage(char *cmd) {
   printf("Usage: %s -i restorefile -e reserve_edges -v reserve_vertices\n", cmd);
@@ -42,13 +42,13 @@ void query(rgraph *g, const char *s, const char *p, const char* o) {
 
 
   if(strcmp("*",s) != 0) {
-    sid = rgraph_get_vertice_id(g,s);
+    sid = g->get_vertice_id(s);
   }
   if(strcmp("*",p) != 0) {
-    pid = rgraph_get_vertice_id(g,p);
+    pid = g->get_vertice_id(p);
   }
   if(strcmp("*",o) != 0) {
-    oid = rgraph_get_vertice_id(g,o);
+    oid = g->get_vertice_id(o);
   }
 
   printf("querying %s=%d, %s=%d, %s=%d\n",s,sid,p,pid,o,oid);
@@ -71,7 +71,7 @@ void query(rgraph *g, const char *s, const char *p, const char* o) {
 }
 
 
-void main(int argc, char** argv) {
+int main(int argc, char** argv) {
   int opt;
   char *ifile = NULL;
   long int reserve_edges = 1<<16;
@@ -97,19 +97,17 @@ void main(int argc, char** argv) {
   if(ifile) {
     rgraph graph;
 
-    // init empty graph
-    init_rgraph(&graph, reserve_vertices, reserve_edges);
 
     // first restore existing dump in case -i is given
-    restore_graph(&graph,ifile);
+    graph.restore_file(ifile);
 
     // read from stdin pairs of vertices and compute relatedness
     char *line    = NULL;
     size_t len    = 0;
     char *s, *p, *o;
-    s = malloc(256 * sizeof(char));
-    p = malloc(256 * sizeof(char));
-    o = malloc(256 * sizeof(char));
+    s = new char[256];
+    p = new char[256];
+    o = new char[256];
     while((getline(&line,&len,stdin) != -1)) {
       sscanf(line,"%s %s %s\n", s, p, o);
 
@@ -118,9 +116,10 @@ void main(int argc, char** argv) {
 
     free(line);
 
-    destroy_rgraph(&graph);
+    return 0;
   } else {
     usage(argv[0]);
+    return 1;
   }
 
 }

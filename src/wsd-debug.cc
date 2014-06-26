@@ -7,12 +7,13 @@
 #include <time.h>
 
 #include "../graph/rgraph.h"
-#include "../graph/graphio.h"
 
 
 #define MODE_WEIGHTS 1
 #define MODE_EDGES   2
 #define MODE_LABELS  4
+
+using namespace mico::graph;
 
 void usage(char *cmd) {
   printf("Usage: %s -i restorefile [-w] [-e] [-l]\n", cmd);
@@ -20,11 +21,9 @@ void usage(char *cmd) {
 }
 
 
-void main(int argc, char** argv) {
+int main(int argc, char** argv) {
   int opt, i;
   char *ifile = NULL;
-  long int reserve_edges = 1<<16;
-  long int reserve_vertices = 1<<12;
 
   int mode = 0;
 
@@ -51,11 +50,8 @@ void main(int argc, char** argv) {
   if(ifile) {
     rgraph graph;
 
-    // init empty graph
-    init_rgraph(&graph, reserve_vertices, reserve_edges);
-
     // first restore existing dump in case -i is given
-    restore_graph(&graph,ifile);
+    graph.restore_file(ifile);
 
     if(mode & MODE_WEIGHTS) {
       printf("Weights: \n");
@@ -79,10 +75,10 @@ void main(int argc, char** argv) {
     }
 
 
-
-    destroy_rgraph(&graph);
+    return 0;
   } else {
     usage(argv[0]);
+    return 1;
   }
 
 }

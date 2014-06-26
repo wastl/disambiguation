@@ -13,16 +13,17 @@ using namespace std;
 #include <sys/stat.h>
 #include <errno.h>
 
-extern "C" {
+#include "disambiguation.h"
 #include "../graph/rgraph.h"
-#include "../graph/graphio.h"
+#include "../communication/connection.h"
+
+extern "C" {
 #include "../communication/network.h"
 }
 
-#include "disambiguation.h"
-#include "../communication/connection.h"
 
 using namespace mico::network;
+using namespace mico::graph;
 
 void usage(char *cmd) {
   printf("Usage: %s -i fileprefix [-e edges] [-v vertices]\n", cmd);
@@ -78,19 +79,13 @@ int main(int argc, char** argv) {
   long int reserve_vertices = 1<<12;
 
   // read options from command line
-  while( (opt = getopt(argc,argv,"i:e:v:p:")) != -1) {
+  while( (opt = getopt(argc,argv,"i:p:")) != -1) {
     switch(opt) {
     case 'i':
       ifile = optarg;
       break;
     case 'p':
       port = atoi(optarg);
-      break;
-    case 'e':
-      reserve_edges = atol(optarg);
-      break;
-    case 'v':
-      reserve_vertices = atol(optarg);
       break;
     default:
       usage(argv[0]);
@@ -101,11 +96,8 @@ int main(int argc, char** argv) {
     rgraph graph;
 
 
-    // init empty graph
-    init_rgraph(&graph, reserve_vertices, reserve_edges);
-
     // first restore existing dump in case -i is given
-    restore_graph(&graph,ifile);
+    graph.restore_file(ifile);
 
     // open socket if -p is specified on command line
     if(port) {
@@ -133,8 +125,6 @@ int main(int argc, char** argv) {
     
     google::protobuf::ShutdownProtobufLibrary();
 
-
-    destroy_rgraph(&graph);
   } else {
     usage(argv[0]);
   }

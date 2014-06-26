@@ -12,6 +12,7 @@ namespace mico {
 
     using namespace std;
     using namespace __gnu_cxx;
+    using namespace mico::graph;
 
     /**
      * Create a connection for sending/receiving requests from standard input/output

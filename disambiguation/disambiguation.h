@@ -3,11 +3,10 @@
 
 #include <iostream>
 
+#include "../graph/rgraph.h"
 #include "../communication/disambiguation_request.pb.h"
 
-extern "C" {
-#include "../graph/rgraph.h"
-}
+
 
 // precision for relatedness values (for rounding)
 #define PRECISION 5
@@ -23,7 +22,7 @@ public:
    * Compute disambiguation for this request using the graph pointed to in the argument. Store
    * results in the ranking values of the entity candidates.
    */
-  void disambiguation(rgraph *graph);
+  void disambiguation(mico::graph::rgraph *graph);
 
 
 };

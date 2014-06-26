@@ -8,9 +8,8 @@
 
 #include "disambiguation_request.pb.h"
 
-extern "C" {
 #include "../graph/rgraph.h"
-}
+
 
 
 namespace mico {
@@ -26,19 +25,19 @@ namespace mico {
     public:
 
       // TODO: this should be removed from here, as it is specific to wsd-disambiguation.cc
-      rgraph* graph;
+      mico::graph::rgraph* graph;
 
       pthread_t thread; // thread descriptor in case threading is enabled
   
       /**
        * Create a connection for sending/receiving requests from standard input/output
        */
-      base_connection(rgraph *graph);
+      base_connection(mico::graph::rgraph *graph);
 
       /**
        * Create a connection for sending/receiving requests from a file descriptor
        */
-      base_connection(int conn, rgraph *graph);
+      base_connection(int conn, mico::graph::rgraph *graph);
 
       ~base_connection();
     };
@@ -53,12 +52,12 @@ namespace mico {
       /**
        * Create a connection for sending/receiving requests from standard input/output
        */
-      connection(rgraph *graph) : base_connection(graph) {};
+      connection(mico::graph::rgraph *graph) : base_connection(graph) {};
 
       /**
        * Create a connection for sending/receiving requests from a file descriptor
        */
-      connection(int conn, rgraph *graph) : base_connection(conn, graph) {};
+      connection(int conn, mico::graph::rgraph *graph) : base_connection(conn, graph) {};
 
 
 

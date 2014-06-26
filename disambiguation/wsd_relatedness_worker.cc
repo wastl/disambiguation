@@ -7,6 +7,8 @@
 #include "../threading/thread.h"
 #include "wsd_relatedness_worker.h"
 
+using namespace mico::graph;
+
 namespace mico {
   namespace disambiguation {
     namespace wsd {

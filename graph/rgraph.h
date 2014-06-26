@@ -33,18 +33,20 @@ namespace mico {
 
     class rgraph {
 
+    public:
+      igraph_t        *graph;       /* IGraph representing the triples */
+      char            **vertices;   /* map from vertice IDs to URIs */
+      int             num_vertices; /* number of vertices in trie and graph */
+      int             num_prefixes; /* number of predefined prefixes */
+      igraph_vector_t *weights;     /* vector containing edge weights */
+      igraph_vector_t *labels;      /* vector containing edge labels (property node IDs) */
+
     protected:
       friend class mico::graph::rdf::parser;
       friend class mico::relatedness::shortest_path;
 
-      igraph_t        *graph;       /* IGraph representing the triples */
       kh_uris_t       *uris;        /* map from URIs to vertice IDs */
-      char            **vertices;   /* map from vertice IDs to URIs */
       char            **prefixes;   /* list of commonly used prefixes (for shortening URIs) */
-      int             num_vertices; /* number of vertices in trie and graph */
-      int             num_prefixes; /* number of predefined prefixes */
-      igraph_vector_t *labels;      /* vector containing edge labels (property node IDs) */
-      igraph_vector_t *weights;     /* vector containing edge weights */
 
       pthread_rwlock_t mutex_v;      /* vertice mutex */
       pthread_mutex_t  mutex_g;      /* graph mutex  */

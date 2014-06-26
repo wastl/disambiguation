@@ -95,7 +95,7 @@ namespace mico {
 	std::queue<rtask>        tasks;
 
 	// the knowledge graph in the backend
-	rgraph*           graph;         
+	mico::graph::rgraph*           graph;         
 
 	// the WSD data structures
 	igraph_t&         wsd_graph;
@@ -112,7 +112,7 @@ namespace mico {
 
       public:
 
-	relatedness_threadpool_base(rgraph* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist);
+	relatedness_threadpool_base(mico::graph::rgraph* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist);
 	~relatedness_threadpool_base();
 
 	// add a relatedness task to the queue
@@ -145,7 +145,7 @@ namespace mico {
 
       public:
 
-	relatedness_threadpool(rgraph* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist) 
+	relatedness_threadpool(mico::graph::rgraph* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist) 
 	  : relatedness_threadpool_base(graph, wsd_graph, wsd_weights, max_dist) {};
 
       };

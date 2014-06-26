@@ -6,13 +6,15 @@
 
 extern "C" {
 #include "../config.h"
-#include "../graph/rgraph.h"
 }
 
+#include "../graph/rgraph.h"
 #include "disambiguation.h"
 #include "wsd_relatedness_worker.h"
 #include "../relatedness/relatedness_base.h"
 #include "../relatedness/relatedness_shortest_path.h"
+
+using namespace mico::graph;
 
 inline int ipow(int base, int exp)
 {
