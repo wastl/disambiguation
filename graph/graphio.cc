@@ -134,7 +134,8 @@ namespace mico {
       for(i=0; i<ecount; i++) {
 	is.read((char*)&id,sizeof(int));
 	igraph_vector_push_back(&edges,id);
-	
+	is.read((char*)&id,sizeof(int));
+	igraph_vector_push_back(&edges,id);	
       }
       igraph_add_edges(graph, &edges, 0);
 
