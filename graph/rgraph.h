@@ -17,16 +17,25 @@
 KHASH_MAP_INIT_STR(uris, int)
 
 namespace mico {
+
+  namespace relatedness {
+    class base;
+    class shortest_path;
+  }
+
   namespace graph {
 
     namespace rdf {
       class parser;
     }
 
+
+
     class rgraph {
 
     protected:
       friend class mico::graph::rdf::parser;
+      friend class mico::relatedness::shortest_path;
 
       igraph_t        *graph;       /* IGraph representing the triples */
       kh_uris_t       *uris;        /* map from URIs to vertice IDs */

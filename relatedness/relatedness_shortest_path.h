@@ -26,12 +26,15 @@ namespace mico {
       double* dist;   // vector with current distance used by Dijkstra algorithm
       int*    idx;    // reverse lookup index pointing from vertice ids to queue positions
 
+
+      void collect(int node, int depth);
+
     public:
       
       /**
        * Initialise a shortest path computation over the given graph up to the given maximum distance.
        */
-      shortest_path(rgraph* graph, int max_dist);
+      shortest_path(mico::graph::rgraph* graph, int max_dist);
 
       /**
        * Cleanup helper structures

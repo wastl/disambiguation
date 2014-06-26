@@ -7,8 +7,11 @@
 
 #include "relatedness_shortest_path.h"
 
+using namespace mico::graph;
+using namespace mico::relatedness;
+
 // constructor: initialise helper structures
-mico::relatedness::shortest_path::shortest_path(rgraph* graph, int max_dist) : mico::relatedness::base(graph), max_dist(max_dist) {
+mico::relatedness::shortest_path::shortest_path(rgraph* graph, int max_dist) : base(graph), max_dist(max_dist) {
   dist = new double[graph->num_vertices];
   idx =  new int[graph->num_vertices];
 
@@ -23,7 +26,7 @@ mico::relatedness::shortest_path::~shortest_path() {
 }
 
 // BFS to look for all vertices up to a certain distance
-inline void collect(rgraph* graph, int node, pqueue_t* queue, int depth) {
+inline void mico::relatedness::shortest_path::collect(int node, int depth) {
   long int i, j, v;
 
 
@@ -32,10 +35,10 @@ inline void collect(rgraph* graph, int node, pqueue_t* queue, int depth) {
   for (i=(long int) VECTOR(graph->graph->os)[node]; i<j; i++) {
     v   = VECTOR(graph->graph->to)[  (long int)VECTOR(graph->graph->oi)[i] ];
 
-    if(queue->indexes[v] == 0) {
-      pq_insert(queue, v);
+    if(idx[v] == 0) {
+      pq_insert(&queue, v);
       if(depth > 1) {
-	collect(graph, v, queue, depth-1);
+	collect(v, depth-1);
       }
     }
   }
@@ -44,10 +47,10 @@ inline void collect(rgraph* graph, int node, pqueue_t* queue, int depth) {
   for (i=(long int) VECTOR(graph->graph->is)[node]; i<j; i++) {
     v   = VECTOR(graph->graph->from)[ (long int)VECTOR(graph->graph->ii)[i] ];
     
-    if(queue->indexes[v] == 0) {
-      pq_insert(queue, v);
+    if(idx[v] == 0) {
+      pq_insert(&queue, v);
       if(depth > 1) {
-	collect(graph, v, queue, depth-1);
+	collect(v, depth-1);
       }
     }
   }
@@ -60,8 +63,8 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
 
   double alt;
 
-  int from = rgraph_get_vertice_id(graph,sfrom);
-  int to   = rgraph_get_vertice_id(graph,sto);
+  int from = graph->get_vertice_id(sfrom);
+  int to   = graph->get_vertice_id(sto);
 
   if(from == -1 || to == -1 || from >= graph->num_vertices || to >= graph->num_vertices) {
     return DBL_MAX;
@@ -86,7 +89,7 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
   // performance 
   pq_insert(&queue,from);
   if(max_dist > 0) {
-    collect(graph,from,&queue,max_dist); 
+    collect(from,max_dist); 
   }
   
 

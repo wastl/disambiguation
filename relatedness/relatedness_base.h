@@ -2,9 +2,8 @@
 #ifndef HAVE_RELATEDNESS_BASE_H
 #define HAVE_RELATEDNESS_BASE_H 1
 
-extern "C" {
 #include "../graph/rgraph.h"
-}
+
 
 namespace mico {
   namespace relatedness {
@@ -17,9 +16,9 @@ namespace mico {
     class base {
 
     protected:
-      rgraph* graph;
+      mico::graph::rgraph* graph;
 
-      base(rgraph* graph) : graph(graph) {};
+      base(mico::graph::rgraph* graph) : graph(graph) {};
 
     public:
 
