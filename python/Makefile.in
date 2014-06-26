@@ -439,7 +439,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -f Makefile
@@ -506,7 +506,7 @@ uninstall-am: uninstall-disambiguationPYTHON
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
-	cscopelist-am ctags-am distclean distclean-generic \
+	clean-local cscopelist-am ctags-am distclean distclean-generic \
 	distclean-libtool distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am \
 	install-disambiguationPYTHON install-dvi install-dvi-am \
@@ -522,6 +522,9 @@ uninstall-am: uninstall-disambiguationPYTHON
 # compile protocol buffers for C
 disambiguation_request_pb2.py: $(SRCDIR)/disambiguation_request.proto
 	$(PROTOC) -I=$(SRCDIR) --proto_path=. --python_out=. $(SRCDIR)/disambiguation_request.proto
+
+clean-local:
+	rm -f disambiguation_request_pb2.py
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

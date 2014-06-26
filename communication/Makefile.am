@@ -6,3 +6,6 @@
 noinst_LIBRARIES = libcommunication.a 
 libcommunication_a_SOURCES = disambiguation_request.pb.cc connection.cc network.c
 
+clean-local:
+	rm -f disambiguation_request.pb.cc
+	rm -f disambiguation_request.pb.h
