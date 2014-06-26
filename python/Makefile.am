@@ -6,5 +6,5 @@ disambiguation_request_pb2.py: $(SRCDIR)/disambiguation_request.proto
 
 
 
-disambiguation_PYTHON = disambiguation_request_pb2.py
+disambiguation_PYTHON = disambiguation_request_pb2.py disambiguation_client.py
 disambiguationdir = $(pythondir)/disambiguation
