@@ -11,7 +11,7 @@ using namespace mico::graph;
 using namespace mico::relatedness;
 
 // constructor: initialise helper structures
-mico::relatedness::shortest_path::shortest_path(rgraph* graph, int max_dist) : base(graph), max_dist(max_dist) {
+mico::relatedness::shortest_path::shortest_path(rgraph_weighted* graph, int max_dist) : graph(graph), max_dist(max_dist) {
   dist = new double[graph->num_vertices];
   idx =  new int[graph->num_vertices];
 
@@ -105,7 +105,7 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
       eid = VECTOR(graph->graph->oi)[i];
       v   = VECTOR(graph->graph->to)[(long int)eid];
 
-      alt = dist[u] + VECTOR(*graph->weights)[eid];
+      alt = dist[u] + graph->weights[eid];
       if(alt < dist[v]) {
 	dist[v] = alt;
 	if(queue.indexes[v] != 0) { // only decrease if the value is actually in the queue
@@ -121,7 +121,7 @@ double mico::relatedness::shortest_path::relatedness(const char* sfrom, const ch
       v   = VECTOR(graph->graph->from)[(long int)eid];
       
 
-      alt = dist[u] + VECTOR(*graph->weights)[eid];
+      alt = dist[u] + graph->weights[eid];
       if(alt < dist[v]) {
 	dist[v] = alt;
 	if(queue.indexes[v] != 0) { // only decrease if the value is actually in the queue

@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
   }
 
   if(ifile) {
-    mico::graph::rgraph graph;
+    mico::graph::rgraph_complete graph;
 
     // first restore existing dump in case -i is given
     graph.restore_file(ifile);

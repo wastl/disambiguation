@@ -23,11 +23,11 @@ void filter(rgraph *g, igraph_vector_t *edges, int sid, int pid, int oid) {
 
     igraph_edge(g->graph, eid, &from, &to);
 
-    printf("%d %d %d\n",from,(int)igraph_vector_e(g->labels,eid),to);
+    printf("%d %d %d\n",from,g->labels[eid],to);
 
-    if((sid < 0 || sid == from) && (pid < 0 || pid == (int)igraph_vector_e(g->labels,eid)) && (oid < 0 || oid == to)) {
+    if((sid < 0 || sid == from) && (pid < 0 || pid == g->labels[eid]) && (oid < 0 || oid == to)) {
       const char *s = g->vertices[from];
-      const char *p = g->vertices[(int)igraph_vector_e(g->labels,eid)];
+      const char *p = g->vertices[g->labels[eid]];
       const char *o = g->vertices[to];
 
       printf("%s --- %s --> %s\n", s, p, o);
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
   }
 
   if(ifile) {
-    rgraph graph;
+    rgraph_complete graph;
 
 
     // first restore existing dump in case -i is given

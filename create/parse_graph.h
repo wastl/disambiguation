@@ -17,15 +17,17 @@ namespace mico {
       class parser {
 	friend void parse_edge_statement_handler(void *data, raptor_statement* statement);
 
-	rgraph& graph;
+	rgraph_complete& graph;
 
 	raptor_world  *world;
 	raptor_parser *raptor;
 	raptor_uri    *base_uri;
 
 	igraph_vector_t* edges;
-	igraph_vector_t* labels;
-	igraph_vector_t* weights;
+	vector<int>       labels;
+
+	vector<double>    weights;
+	vector<cluster_t> clusters;
 
 	inline int  update_trie(raptor_term* node);
 	inline void update_graph(bool force);
@@ -34,7 +36,7 @@ namespace mico {
 	/**
 	 * Initialise new parser for the given graph, format, and base_uri
 	 */
-	parser(rgraph& graph, const char* format, const char* base_uri);
+	parser(rgraph_complete& graph, const char* format, const char* base_uri);
 
 	~parser();
 

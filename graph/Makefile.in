@@ -96,7 +96,8 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libgraph_a_AR = $(AR) $(ARFLAGS)
 libgraph_a_LIBADD =
-am_libgraph_a_OBJECTS = graphio.$(OBJEXT) rgraph.$(OBJEXT)
+am_libgraph_a_OBJECTS = graphio.$(OBJEXT) rgraph.$(OBJEXT) \
+	rgraph_weighted.$(OBJEXT) rgraph_clustered.$(OBJEXT)
 libgraph_a_OBJECTS = $(am_libgraph_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -299,7 +300,7 @@ top_srcdir = @top_srcdir@
 
 # common static C libraries
 noinst_LIBRARIES = libgraph.a 
-libgraph_a_SOURCES = graphio.cc rgraph.cc 
+libgraph_a_SOURCES = graphio.cc rgraph.cc rgraph_weighted.cc rgraph_clustered.cc
 all: all-am
 
 .SUFFIXES:
@@ -351,6 +352,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/graphio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph_clustered.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rgraph_weighted.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

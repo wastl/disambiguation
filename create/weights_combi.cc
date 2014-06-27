@@ -55,7 +55,7 @@ namespace mico {
 
 
 	  // increase counter for label
-	  pred = igraph_vector_e(labels,eid);
+	  pred = labels[eid];
 	  if(pred < vcount) {
 	    p_pred[pred]++;
 	  } else {
@@ -98,8 +98,8 @@ namespace mico {
 	// weight
 	printf("- computing edge information content ... \n");
 
-	igraph_vector_resize(weights, igraph_ecount(graph));
-	igraph_vector_fill(weights, 1.0);
+	weights.clear();
+	weights.resize(igraph_ecount(graph), 1.0);
 
 	igraph_eit_create(graph, edge_s, &edge_it);
 
@@ -108,10 +108,10 @@ namespace mico {
     
 	  igraph_edge(graph, eid, &from, &to); 
 
-	  pred = igraph_vector_e(labels,eid);
+	  pred = labels[eid];
 
 	  if(ic_pred[pred] < DBL_MAX && ic_obj[to] < DBL_MAX) {
-	    igraph_vector_set(weights, eid, 1.0 / (ic_pred[pred] + ic_obj[to]));
+	    weights[eid] = 1.0 / (ic_pred[pred] + ic_obj[to]);
 	  }
 
 	  //printf("edge weight %d: %.3f\n", eid, 1.0 / (ic_pred[pred] + ic_obj[to]));

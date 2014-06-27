@@ -15,13 +15,16 @@ using namespace std;
 
 #include "disambiguation.h"
 #include "../graph/rgraph.h"
+#include "../threading/thread.h"
 #include "../communication/connection.h"
+
 
 extern "C" {
 #include "../communication/network.h"
 }
 
 
+using namespace mico::threading;
 using namespace mico::network;
 using namespace mico::graph;
 
@@ -36,39 +39,46 @@ void usage(char *cmd) {
 }
 
 
+typedef connection<WSDDisambiguationRequest> connection_t;
 
-void* worker(void* data) {
-  connection<WSDDisambiguationRequest>* wsd = (connection<WSDDisambiguationRequest>*) data;
+class worker : public virtual thread {
 
+  rgraph_complete& graph;
+  connection_t*    connection;
 
-  WSDDisambiguationRequest* req = NULL;
+public:
+  
+  worker(connection_t* connection, rgraph_complete& graph) : thread(), connection(connection), graph(graph) {};
+  
 
-  // read requests until finished
-  try {
-    while( (req = wsd->nextRequest()) != NULL) {
-      std::cout << "received new request\n";
-      std::cout << req->DebugString();
-      req->disambiguation(wsd->graph);
+  void run() {
+    WSDDisambiguationRequest* req = NULL;
 
-      // std::cout << "response:\n";
-      // std::cout << req->DebugString();
+    // read requests until finished
+    try {
+      while( (req = connection->nextRequest()) != NULL) {
+	std::cout << "received new request\n";
+	std::cout << req->DebugString();
+	req->disambiguation(&graph);
+
+	// std::cout << "response:\n";
+	// std::cout << req->DebugString();
     
-      *wsd << *req;
-      delete req;
-      req = NULL;
+	*connection << *req;
+	delete req;
+	req = NULL;
+      }
+    } catch(std::ios_base::failure) {
+      std::cerr << "error writing response to network connection\n";
+      if(req != NULL) {
+	delete req;
+      }
     }
-  } catch(std::ios_base::failure) {
-    std::cerr << "error writing response to network connection\n";
-    if(req != NULL) {
-      delete req;
-    }
-  }
 
-  delete wsd;
+    delete connection;
+  };
 
-  return 0;
-}
-
+};
 
 
 int main(int argc, char** argv) {
@@ -93,7 +103,7 @@ int main(int argc, char** argv) {
   }
 
   if(ifile) {
-    rgraph graph;
+    rgraph_complete graph;
 
 
     // first restore existing dump in case -i is given
@@ -108,18 +118,17 @@ int main(int argc, char** argv) {
 #else
       if( (conn_fd = accept_connection(socket)) >= 0) {
 #endif
-	connection<WSDDisambiguationRequest>* wsd = new connection<WSDDisambiguationRequest>(conn_fd, &graph);
-
-#if defined(USE_THREADS) && !defined(PROFILING)
-	pthread_create(&wsd->thread, NULL, &worker, wsd);
-#else
-	worker(wsd);
+	worker* w = new worker(new connection<WSDDisambiguationRequest>(conn_fd), graph);
+	w->start();
+#ifdef PROFILING
+	w->join();
 #endif    
       }
 
     } else {
-      connection<WSDDisambiguationRequest>* wsd = new connection<WSDDisambiguationRequest>(&graph);
-      worker(wsd);
+	worker* w = new worker(new connection<WSDDisambiguationRequest>(), graph);
+	w->start();
+	w->join();
     }
 
     

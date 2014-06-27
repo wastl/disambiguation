@@ -17,7 +17,7 @@ namespace mico {
     /**
      * Create a connection for sending/receiving requests from standard input/output
      */
-    base_connection::base_connection(rgraph *graph) : conn(0), graph(graph) {
+    base_connection::base_connection() : conn(0) {
       in = &cin;
       out = &cout;
     }
@@ -25,7 +25,7 @@ namespace mico {
     /**
      * Create a connection for sending/receiving requests from a file descriptor
      */
-    base_connection::base_connection(int conn, rgraph *graph) : conn(conn), graph(graph) {
+    base_connection::base_connection(int conn) : conn(conn) {
       stdio_filebuf<char>* ibuf = new stdio_filebuf<char>(conn, std::ios::in);
       in = new istream(ibuf);
 

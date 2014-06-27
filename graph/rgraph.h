@@ -3,6 +3,7 @@
 #define HAVE_RGRAPH_H 1
 
 #include <iostream>
+#include <vector>
 #include <pthread.h>
 #include <string.h>
 #include <igraph/igraph.h>
@@ -15,6 +16,8 @@
 
 
 KHASH_MAP_INIT_STR(uris, int)
+
+using namespace std;
 
 namespace mico {
 
@@ -35,11 +38,9 @@ namespace mico {
 
     public:
       igraph_t        *graph;       /* IGraph representing the triples */
-      char            **vertices;   /* map from vertice IDs to URIs */
       int             num_vertices; /* number of vertices in trie and graph */
-      int             num_prefixes; /* number of predefined prefixes */
-      igraph_vector_t *weights;     /* vector containing edge weights */
-      igraph_vector_t *labels;      /* vector containing edge labels (property node IDs) */
+      vector<char*>   vertices;     /* map from vertice IDs to URIs */
+      vector<int>     labels;       /* vector containing edge labels (property node IDs) */
 
       kh_uris_t       *uris;        /* map from URIs to vertice IDs */
 
@@ -47,11 +48,16 @@ namespace mico {
       friend class mico::graph::rdf::parser;
       friend class mico::relatedness::shortest_path;
 
-      char            **prefixes;   /* list of commonly used prefixes (for shortening URIs) */
-
       pthread_rwlock_t mutex_v;      /* vertice mutex */
       pthread_mutex_t  mutex_g;      /* graph mutex  */
 
+      // override in subclasses in case more data needs to be written to the stream after the
+      // initial data has been written
+      virtual void dump_stream_hook(std::ostream& os) const {};
+
+      // override in subclasses in case more data needs to be restored from the stream after the
+      // initial data has been read
+      virtual void restore_stream_hook(std::istream& is) {};
 
     public:
 
@@ -70,14 +76,14 @@ namespace mico {
        * avoid excessive reallocation during graph construction in case the
        * number of vertices can be estimated in advance.
        */
-      void reserve_vertices(int reserve_vertices);
+      virtual void reserve_vertices(int reserve_vertices);
 
       /**
        * Preallocate memory for the given number of edges. Can be used to
        * avoid excessive reallocation during graph construction in case the
        * number of vertices can be estimated in advance.
        */
-      void reserve_edges(int reserve_edges);
+      virtual void reserve_edges(int reserve_edges);
 
 
       inline int vertice_count() const { return num_vertices; };
@@ -104,19 +110,6 @@ namespace mico {
        * value. The uri is NOT duplicated, so callers need to make sure the string remains on the heap.
        */
       void set_vertice_id(const char* uri, int vid); 
-
-
-      /**
-      * Add a URI prefix to the list of prefixes. List will be expanded if necessary. The given string
-      * will be duplicated.
-      */
-      void add_prefix(const char* uri);
-
-      /**
-       * Check if the given URI has one of the defined prefixes. Returns a pointer to the prefix. If
-       * pos is not null, pos will contain the first position in the URI after the prefix.
-       */
-      char* has_prefix(const char* uri, const char** pos) const;
 
       
       /**
@@ -192,6 +185,116 @@ namespace mico {
 	pthread_rwlock_unlock(&mutex_v);
       }
 
+    };
+
+
+    /**
+     * A version of an rgraph with edge weights available.
+     */
+    class rgraph_weighted : public virtual rgraph {
+
+    protected:
+
+      // write weights to stream
+      virtual void dump_stream_hook(std::ostream& os) const;
+
+      // read weights from stream
+      virtual void restore_stream_hook(std::istream& is);
+
+
+    public:
+      std::vector<double> weights;     /* vector containing edge weights */
+
+
+      /**
+       * Initialise an empty relatedness graph, ready for being updated.
+       */
+      rgraph_weighted(int reserve_vertices = 0, int reserve_edges = 0)  : rgraph(reserve_vertices, reserve_edges) {};
+
+
+      /**
+       * Preallocate memory for the given number of edges. Can be used to
+       * avoid excessive reallocation during graph construction in case the
+       * number of vertices can be estimated in advance.
+       */
+      virtual void reserve_edges(int reserve_edges);
+
+      
+
+    };
+
+    typedef char* cluster_t;
+
+    /**
+     * A version of an rgraph where each vertice has an array of hierarchical clusters it is
+     * assigned to.
+     */ 
+    class rgraph_clustered : public virtual rgraph {           
+
+    protected:
+      
+
+      // write weights to stream
+      virtual void dump_stream_hook(std::ostream& os) const;
+
+      // read weights from stream
+      virtual void restore_stream_hook(std::istream& is);
+
+
+    public:
+      int num_clusters;
+
+      std::vector<cluster_t> clusters;     /* vector containing clusters */
+
+
+      /**
+       * Initialise an empty relatedness graph, ready for being updated.
+       */
+      rgraph_clustered(int num_clusters = 8, int reserve_vertices = 0, int reserve_edges = 0)  : rgraph(reserve_vertices, reserve_edges), num_clusters(num_clusters) {};
+
+      /**
+       * Destroy all resources claimed by a relatedness graph
+       */
+      ~rgraph_clustered();
+
+      /**
+       * Preallocate memory for the given number of vertices. Can be used to
+       * avoid excessive reallocation during graph construction in case the
+       * number of vertices can be estimated in advance.
+       */
+      virtual void reserve_vertices(int reserve_vertices);
+      
+
+    };
+
+
+    /**
+     * A complete rgraph with weights and clusters.
+     */
+    class rgraph_complete : public rgraph_weighted, public rgraph_clustered {
+
+    protected:
+      
+      // write weights to stream
+      virtual void dump_stream_hook(std::ostream& os) const {
+	rgraph_weighted::dump_stream_hook(os);
+	rgraph_clustered::dump_stream_hook(os);
+      };
+
+      // read weights from stream
+      virtual void restore_stream_hook(std::istream& is) {
+	rgraph_weighted::restore_stream_hook(is);
+	rgraph_clustered::restore_stream_hook(is);
+      };
+
+    public:
+      
+      rgraph_complete(int num_clusters = 8, int reserve_vertices = 0, int reserve_edges = 0)  
+	: rgraph(reserve_vertices, reserve_edges)
+	, rgraph_weighted(reserve_vertices, reserve_edges)
+	, rgraph_clustered(num_clusters, reserve_vertices, reserve_edges) {};
+
+      
     };
 
   }

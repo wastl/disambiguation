@@ -18,6 +18,8 @@ namespace mico {
      */
     class dfs : public virtual base {
 
+      mico::graph::rgraph_weighted* graph;
+
       int max_dist;
 
       double* dist;   // vector with current distance used by DFS algorithm
@@ -29,7 +31,7 @@ namespace mico {
       /**
        * Initialise a shortest path computation over the given graph up to the given maximum distance.
        */
-      dfs(mico::graph::rgraph* graph, int max_dist);
+      dfs(mico::graph::rgraph_weighted* graph, int max_dist);
 
       /**
        * Cleanup helper structures

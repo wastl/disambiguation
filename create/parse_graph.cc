@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <float.h>
 #include <raptor2/raptor2.h>
+#include <assert.h>
 
 #include "../graph/rgraph.h"
 #include "parse_graph.h"
@@ -30,8 +31,7 @@ namespace mico {
 	if(from >= 0 && to >= 0) {
 	  igraph_vector_push_back (p->edges, from);
 	  igraph_vector_push_back (p->edges, to);
-	  igraph_vector_push_back (p->labels, label);
-	  igraph_vector_push_back (p->weights, DBL_MAX);
+	  p->labels.push_back(label);
 
 	  p->update_graph(false);
 	}
@@ -40,30 +40,24 @@ namespace mico {
 
 
 
-      parser::parser(rgraph& graph, const char* format, const char* _base_uri) : graph(graph) {
+      parser::parser(rgraph_complete& graph, const char* format, const char* _base_uri) : graph(graph) {
 	world  = raptor_new_world();
 	raptor = raptor_new_parser(world,format);
 	base_uri = raptor_new_uri(world, (const unsigned char*)_base_uri);
 
 	edges   = new igraph_vector_t;
-	labels  = new igraph_vector_t;
-	weights = new igraph_vector_t;
 
 	igraph_vector_init(edges,BUFSIZE);
-	igraph_vector_init(labels,BUFSIZE / 2);
-	igraph_vector_init(weights,BUFSIZE / 2);
+
+	labels.reserve(BUFSIZE);
 
 	raptor_parser_set_statement_handler(raptor, this, parse_edge_statement_handler);
       }
 
       parser::~parser() {
 	igraph_vector_destroy(edges);
-	igraph_vector_destroy(labels);
-	igraph_vector_destroy(weights);
 
 	delete edges;
-	delete labels;
-	delete weights;
 
 	raptor_free_uri(base_uri);
 	raptor_free_parser(raptor);
@@ -96,11 +90,9 @@ namespace mico {
 	    kh_val(graph.uris, k) = graph.num_vertices++;
 
 	    // add URI to vertices
-	    if(kh_val(graph.uris, k) % VINC == 0) {
-	      graph.vertices = (char**)realloc(graph.vertices, (kh_val(graph.uris, k) + VINC) * sizeof(char*));
-	    }
-	    graph.vertices[kh_val(graph.uris, k)] = uri;
-      
+	    graph.vertices.push_back(uri);
+
+	    assert(graph.vertices.size() == graph.num_vertices);
 	  }
 
 	  data = kh_val(graph.uris, k);
@@ -141,16 +133,15 @@ namespace mico {
 	    igraph_add_edges(graph.graph, edges, 0);
 
 	    // add edge labels
-	    igraph_vector_append(graph.labels, labels);
+	    graph.labels.insert(graph.labels.end(), labels.begin(), labels.end());
     
-	    // add edge weights
-	    igraph_vector_append(graph.weights, weights);
+	    // add edge weights and clusters
+	    graph.weights.insert(graph.weights.end(), igraph_ecount(graph.graph) - graph.weights.size(), DBL_MAX);
 
 	    graph.unlock_graph();
 
 	    igraph_vector_clear(edges);
-	    igraph_vector_clear(labels);
-	    igraph_vector_clear(weights);
+	    labels.clear();
 	  }
 	}
       }
@@ -163,8 +154,7 @@ namespace mico {
        */
       void parser::parse(const unsigned char *data, size_t len) {
 	igraph_vector_clear(edges);
-	igraph_vector_clear(labels);
-	igraph_vector_clear(weights);
+	labels.clear();
 
 	//raptor_parser_parse_iostream(parser, in, base_uri);
 	raptor_parser_parse_start(raptor, base_uri); 

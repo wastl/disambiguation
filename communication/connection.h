@@ -24,20 +24,17 @@ namespace mico {
       
     public:
 
-      // TODO: this should be removed from here, as it is specific to wsd-disambiguation.cc
-      mico::graph::rgraph* graph;
-
       pthread_t thread; // thread descriptor in case threading is enabled
   
       /**
        * Create a connection for sending/receiving requests from standard input/output
        */
-      base_connection(mico::graph::rgraph *graph);
+      base_connection();
 
       /**
        * Create a connection for sending/receiving requests from a file descriptor
        */
-      base_connection(int conn, mico::graph::rgraph *graph);
+      base_connection(int conn);
 
       ~base_connection();
     };
@@ -52,12 +49,12 @@ namespace mico {
       /**
        * Create a connection for sending/receiving requests from standard input/output
        */
-      connection(mico::graph::rgraph *graph) : base_connection(graph) {};
+      connection() : base_connection() {};
 
       /**
        * Create a connection for sending/receiving requests from a file descriptor
        */
-      connection(int conn, mico::graph::rgraph *graph) : base_connection(conn, graph) {};
+      connection(int conn) : base_connection(conn) {};
 
 
 

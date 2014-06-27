@@ -15,15 +15,7 @@ namespace mico {
      */
     class base {
 
-    protected:
-      mico::graph::rgraph* graph;
-
-      base(mico::graph::rgraph* graph) : graph(graph) {};
-
     public:
-
-      virtual ~base() {};
-
 
       /**
        * Compute the relatedness between the two URIs given as argument. The max_dist parameter is used

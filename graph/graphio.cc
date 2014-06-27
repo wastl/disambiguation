@@ -60,16 +60,11 @@ namespace mico {
       // 4. dump edge label data; format: 4 bytes node id per edge
       std::cout << "- dumping edge label data ...\n";
       for(i=0; i<igraph_ecount(graph); i++) {
-	v = igraph_vector_e(labels, i);
-	os.write((char*)&v, sizeof(int));
+	os.write((char*)&labels[i], sizeof(int));
       }
 
-      // 5. dump edge weight data for shortest path
-      std::cout << "- dumping weight data (shortest path) ...\n";
-      for(i=0; i<igraph_ecount(graph); i++) {
-	w = igraph_vector_e(weights, i);
-	os.write((char*)&w, sizeof(double));
-      }
+
+      dump_stream_hook(os);
     }
 
     /**
@@ -151,20 +146,12 @@ namespace mico {
 
       for(i=0; i<ecount; i++) {
 	is.read((char*)&id,sizeof(int));
-	igraph_vector_push_back(labels,id);	
+	labels.push_back(id);
       }
-      std::cout << igraph_vector_size(labels) << " labels!\n";
+      std::cout << labels.size() << " labels!\n";
 
-      // 5. restore weight data of the form 4 bytes double value
-      std::cout << "- restoring weight data ... ";
-      std::cout.flush();
 
-      double w;
-      for(i=0; i<ecount; i++) {
-	is.read((char*)&w, sizeof(double));
-	igraph_vector_push_back(weights,w);	
-      }
-      std::cout << igraph_vector_size(weights) << " weights!\n";
+      restore_stream_hook(is);
 
       std::cout << "done!\n";
     }

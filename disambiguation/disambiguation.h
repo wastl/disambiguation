@@ -22,7 +22,7 @@ public:
    * Compute disambiguation for this request using the graph pointed to in the argument. Store
    * results in the ranking values of the entity candidates.
    */
-  void disambiguation(mico::graph::rgraph *graph);
+  void disambiguation(mico::graph::rgraph_complete *graph);
 
 
 };

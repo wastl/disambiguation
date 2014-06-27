@@ -18,7 +18,7 @@ namespace mico {
        *   relative selectivity over the graph (this is simply the in-degree
        *   divided by the total number of edges)
        */ 
-      class rgraph_weights_combi : public rgraph {
+      class rgraph_weights_combi : public rgraph_complete {
 
       public:
 

@@ -12,23 +12,24 @@
 #define MODE_WEIGHTS 1
 #define MODE_EDGES   2
 #define MODE_LABELS  4
+#define MODE_CLUSTERS 8
 
 using namespace mico::graph;
 
 void usage(char *cmd) {
-  printf("Usage: %s -i restorefile [-w] [-e] [-l]\n", cmd);
+  printf("Usage: %s -i restorefile [-w] [-e] [-l] [-c]\n", cmd);
   exit(1);
 }
 
 
 int main(int argc, char** argv) {
-  int opt, i;
+  int opt, i,j;
   char *ifile = NULL;
 
   int mode = 0;
 
   // read options from command line
-  while( (opt = getopt(argc,argv,"i:wel")) != -1) {
+  while( (opt = getopt(argc,argv,"i:welc")) != -1) {
     switch(opt) {
     case 'i':
       ifile = optarg;
@@ -42,13 +43,16 @@ int main(int argc, char** argv) {
     case 'l':
       mode |= MODE_LABELS;
       break;
+    case 'c':
+      mode |= MODE_CLUSTERS;
+      break;
     default:
       usage(argv[0]);
     }
   }
 
   if(ifile) {
-    rgraph graph;
+    rgraph_complete graph;
 
     // first restore existing dump in case -i is given
     graph.restore_file(ifile);
@@ -57,10 +61,28 @@ int main(int argc, char** argv) {
       printf("Weights: \n");
 
       for(i=0; i< igraph_ecount(graph.graph); i++) {
-	printf("%d: %.4f\n",i, igraph_vector_e(graph.weights, i));
+	printf("%d: %.4f\n",i, graph.weights[i]);
       }
 
     }
+
+    if(mode & MODE_CLUSTERS) {
+      printf("Clusters: \n");
+
+      for(i=0; i< igraph_vcount(graph.graph); i++) {
+	printf("%d: {",i, graph.weights[i]);
+	for(j=0; j<graph.num_clusters; j++) {
+	  if(j+1 < graph.num_clusters) {
+	    printf("%d, ",graph.clusters[i][j]);
+	  } else {
+	    printf("%d",graph.clusters[i][j]);
+	  }
+	}
+	printf("}\n");
+      }
+
+    }
+
 
     if(mode & MODE_EDGES) {
       printf("Edges: \n");

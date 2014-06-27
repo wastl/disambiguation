@@ -56,7 +56,7 @@ namespace mico {
       /**
        * Constructor. Initialise instance variables and mutexes.
        */
-      relatedness_threadpool_base::relatedness_threadpool_base(rgraph* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist) 
+      relatedness_threadpool_base::relatedness_threadpool_base(rgraph_complete* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist) 
 	: graph(graph), wsd_graph(wsd_graph), wsd_weights(wsd_weights), max_dist(max_dist) {
 	pthread_mutex_init(&wsd_mutex,NULL);
 	pthread_mutex_init(&tsk_mutex,NULL);

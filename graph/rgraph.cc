@@ -13,19 +13,11 @@ namespace mico {
 
       uris  = kh_init(uris);
       graph = new igraph_t;
-      vertices = (char**)malloc((rv > 0 ? rv : 2) * sizeof(char*));
-      labels = new igraph_vector_t;
-      weights = new igraph_vector_t;
-      prefixes = NULL;
 
       // init empty graph
       igraph_empty(graph,0,GRAPH_MODE);
 
       num_vertices = 0;
-      num_prefixes = 0;
-
-      igraph_vector_init(labels,0);
-      igraph_vector_init(weights,0);
 
       // apply initial sizes
       if(rv > 0)
@@ -48,7 +40,7 @@ namespace mico {
 	igraph_vector_reserve(&graph->os,   reserve_vertices + 1);
 	igraph_vector_reserve(&graph->is,   reserve_vertices + 1);
 
-	vertices = (char**)realloc(vertices, reserve_vertices * sizeof(char*));
+	vertices.reserve(reserve_vertices);
 
       }
     }
@@ -58,8 +50,7 @@ namespace mico {
       if(reserve_edges < igraph_ecount(graph)) {
 	fprintf(stderr,"cannot reserve less edges than those already present");
       } else {
-	igraph_vector_reserve(labels, reserve_edges);
-	igraph_vector_reserve(weights, reserve_edges);
+	labels.reserve(reserve_edges);
 
 	igraph_vector_reserve(&graph->from, reserve_edges);
 	igraph_vector_reserve(&graph->to,   reserve_edges);
@@ -83,17 +74,6 @@ namespace mico {
 	free(vertices[i]);
       }
 
-      free(vertices);
-
-      igraph_vector_destroy(labels);
-      igraph_vector_destroy(weights);
-
-      delete labels;
-      delete weights;
-
-      if(prefixes) {
-	free(prefixes);
-      }
 
       kh_destroy(uris, uris);
 
@@ -126,36 +106,6 @@ namespace mico {
 
 
 
-    /**
-     * Add a URI prefix to the list of prefixes. List will be expanded if necessary. The given string
-     * will be duplicated.
-     */
-    void rgraph::add_prefix(const char* uri) {
-      prefixes = (char**)realloc( prefixes, (++num_prefixes) * sizeof(char*) );
-      prefixes[num_prefixes-1] = strdup(uri);
-    }
-
-    /**
-     * Check if the given URI has one of the defined prefixes. Returns a pointer to the prefix. If
-     * pos is not null, pos will contain the first position in the URI after the prefix.
-     */
-    char* rgraph::has_prefix(const char* uri, const char** pos) const {
-      const char *ptr1, *ptr2; int npref = 0;
-      for(npref; npref < num_prefixes; npref++) {
-	ptr1 = uri; ptr2 = prefixes[npref];
-	while(*ptr1 == *ptr2 && *ptr1 && *ptr2) {
-	  ptr1++;
-	  ptr2++;
-	}
-	if(!*ptr2) {
-	  if(pos) {
-	    *pos = ptr1;
-	  }
-	  return prefixes[npref];
-	}
-      }
-      return NULL;
-    }
 
 
   }

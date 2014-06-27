@@ -32,7 +32,7 @@ inline int ipow(int base, int exp)
 }
 
 
-void WSDDisambiguationRequest::disambiguation(rgraph *graph) {
+void WSDDisambiguationRequest::disambiguation(rgraph_complete *graph) {
   using namespace  mico::disambiguation::wsd;
 
   int i, j, t, s, c = 0;

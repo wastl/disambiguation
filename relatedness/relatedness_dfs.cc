@@ -11,7 +11,7 @@ using namespace mico::graph;
 using namespace mico::relatedness;
 
 // constructor: initialise helper structures
-mico::relatedness::dfs::dfs(rgraph* graph, int max_dist) : base(graph), max_dist(max_dist) {
+mico::relatedness::dfs::dfs(rgraph_weighted* graph, int max_dist) : graph(graph), max_dist(max_dist) {
   dist = new double[graph->num_vertices];
 }
 
@@ -30,8 +30,8 @@ inline void mico::relatedness::dfs::collect(int node, double pweight, int depth)
     eid = (long int)VECTOR(graph->graph->oi)[i];
     v   = VECTOR(graph->graph->to)[eid];
 
-    if(dist[v] > pweight + VECTOR(*graph->weights)[eid]) {
-      dist[v] = pweight + VECTOR(*graph->weights)[eid];
+    if(dist[v] > pweight + graph->weights[eid]) {
+      dist[v] = pweight + graph->weights[eid];
       if(depth > 1) {
 	collect(v, dist[v], depth-1);
       }
@@ -43,8 +43,8 @@ inline void mico::relatedness::dfs::collect(int node, double pweight, int depth)
     eid = (long int)VECTOR(graph->graph->ii)[i];
     v   = VECTOR(graph->graph->from)[eid];
     
-    if(dist[v] > pweight + VECTOR(*graph->weights)[eid]) {
-      dist[v] = pweight + VECTOR(*graph->weights)[eid];
+    if(dist[v] > pweight + graph->weights[eid]) {
+      dist[v] = pweight + graph->weights[eid];
       if(depth > 1) {
 	collect(v, dist[v], depth-1);
       }

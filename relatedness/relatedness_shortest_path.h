@@ -20,6 +20,8 @@ namespace mico {
 
       int max_dist;
 
+      mico::graph::rgraph_weighted* graph;
+
       // helper structures (not thread safe!)
       pqueue_t queue; // priority queue used by the Dijkstra algorithm
 
@@ -34,7 +36,7 @@ namespace mico {
       /**
        * Initialise a shortest path computation over the given graph up to the given maximum distance.
        */
-      shortest_path(mico::graph::rgraph* graph, int max_dist);
+      shortest_path(mico::graph::rgraph_weighted* graph, int max_dist);
 
       /**
        * Cleanup helper structures

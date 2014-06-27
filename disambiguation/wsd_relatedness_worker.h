@@ -8,10 +8,7 @@
 
 #include "../threading/thread.h"
 #include "../relatedness/relatedness_base.h"
-
-extern "C" {
 #include "../graph/rgraph.h"
-}
 
 /**
  * This module implements a multi-threaded computation of relatedness values using a fixed-size
@@ -95,7 +92,7 @@ namespace mico {
 	std::queue<rtask>        tasks;
 
 	// the knowledge graph in the backend
-	mico::graph::rgraph*           graph;         
+	mico::graph::rgraph_complete*   graph;         
 
 	// the WSD data structures
 	igraph_t&         wsd_graph;
@@ -112,7 +109,7 @@ namespace mico {
 
       public:
 
-	relatedness_threadpool_base(mico::graph::rgraph* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist);
+	relatedness_threadpool_base(mico::graph::rgraph_complete* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist);
 	~relatedness_threadpool_base();
 
 	// add a relatedness task to the queue
@@ -145,7 +142,7 @@ namespace mico {
 
       public:
 
-	relatedness_threadpool(mico::graph::rgraph* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist) 
+	relatedness_threadpool(mico::graph::rgraph_complete* graph, igraph_t& wsd_graph, igraph_vector_t& wsd_weights, int max_dist) 
 	  : relatedness_threadpool_base(graph, wsd_graph, wsd_weights, max_dist) {};
 
       };
