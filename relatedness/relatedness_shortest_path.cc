@@ -25,7 +25,7 @@ mico::relatedness::shortest_path::~shortest_path() {
   delete[] idx;
 }
 
-// BFS to look for all vertices up to a certain distance
+// DFS to look for all vertices up to a certain distance
 inline void mico::relatedness::shortest_path::collect(int node, int depth) {
   long int i, j, v;
 

@@ -13,6 +13,7 @@ extern "C" {
 #include "wsd_relatedness_worker.h"
 #include "../relatedness/relatedness_base.h"
 #include "../relatedness/relatedness_shortest_path.h"
+#include "../relatedness/relatedness_dfs.h"
 
 using namespace mico::graph;
 

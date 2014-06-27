@@ -99,7 +99,7 @@ am__v_AR_1 =
 librelatedness_a_AR = $(AR) $(ARFLAGS)
 librelatedness_a_LIBADD =
 am_librelatedness_a_OBJECTS = relatedness_shortest_path.$(OBJEXT) \
-	pqueue.$(OBJEXT)
+	relatedness_dfs.$(OBJEXT) pqueue.$(OBJEXT)
 librelatedness_a_OBJECTS = $(am_librelatedness_a_OBJECTS)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
@@ -325,7 +325,7 @@ top_srcdir = @top_srcdir@
 
 # common static C++ libraries
 noinst_LIBRARIES = librelatedness.a
-librelatedness_a_SOURCES = relatedness_shortest_path.cc pqueue.c
+librelatedness_a_SOURCES = relatedness_shortest_path.cc relatedness_dfs.cc pqueue.c
 
 # program for computing relatedness values over the graph
 wsd_relatedness_SOURCES = wsd-relatedness.cc
@@ -433,6 +433,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pqueue.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relatedness_dfs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relatedness_shortest_path.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-relatedness.Po@am__quote@
 
