@@ -24,6 +24,8 @@ namespace mico {
   namespace relatedness {
     class base;
     class shortest_path;
+    class dfs;
+    class cluster;
   }
 
   namespace graph {
@@ -230,6 +232,8 @@ namespace mico {
      * assigned to.
      */ 
     class rgraph_clustered : public virtual rgraph {           
+
+      friend class mico::relatedness::cluster;
 
     protected:
       

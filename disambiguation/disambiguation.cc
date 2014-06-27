@@ -14,6 +14,7 @@ extern "C" {
 #include "../relatedness/relatedness_base.h"
 #include "../relatedness/relatedness_shortest_path.h"
 #include "../relatedness/relatedness_dfs.h"
+#include "../relatedness/relatedness_cluster.h"
 
 using namespace mico::graph;
 
@@ -65,7 +66,23 @@ void WSDDisambiguationRequest::disambiguation(rgraph_complete *graph) {
 
 
   // create thread pool
-  relatedness_threadpool<mico::relatedness::shortest_path> pool(graph,wsd_graph,wsd_weights,maxdist());
+  relatedness_threadpool_base* pool;
+
+  switch(relatedness()) {
+  case SHORTEST_PATH:
+    pool = new relatedness_threadpool<mico::relatedness::shortest_path>(graph,wsd_graph,wsd_weights,maxdist());
+    break;
+
+  case DFS:
+    pool = new relatedness_threadpool<mico::relatedness::dfs>(graph,wsd_graph,wsd_weights,maxdist());
+    break;
+
+  case PARTITION:
+  default:
+    pool = new relatedness_threadpool<mico::relatedness::cluster>(graph,wsd_graph,wsd_weights,maxdist());
+    break;
+  }
+    
 
   // add tasks to threads in pool (round robin)
   for(i = 0; i < entities_size(); i++) {
@@ -73,14 +90,14 @@ void WSDDisambiguationRequest::disambiguation(rgraph_complete *graph) {
       for(t = 0; t < entities(i).candidates_size(); t++) {
 	for(s = 0; s < entities(j).candidates_size(); s++) {
 	  rtask task = {get_node_label(i,t), get_node_label(j,s), get_node_id(i,t),get_node_id(j,s), 0.0};
-	  pool.add_task(task);
+	  pool->add_task(task);
 	}
       }
     }
   }
 
-  pool.start();
-  pool.join();
+  pool->start();
+  pool->join();
 
   // 2. compute centrality for each vertex and write back to
   // candidates
@@ -93,13 +110,15 @@ void WSDDisambiguationRequest::disambiguation(rgraph_complete *graph) {
   igraph_vs_t vertice_s;
   igraph_vs_all(&vertice_s);
 
+  igraph_real_t value = 1.0;
+
   std::cout << "computing centrality scores using algorithm " << centrality() << "...\n";
 
   // we support a number of different algorithms through igraph ...
   switch(centrality()) {
   case PAGERANK:
     // igraph version <0.7 and >= 0.5
-    igraph_pagerank(&wsd_graph, &wsd_centralities, 0, igraph_vss_all(), 0, 0.85, &wsd_weights, 0);
+    igraph_pagerank(&wsd_graph, &wsd_centralities, &value, igraph_vss_all(), 0, 0.85, &wsd_weights, &options);
     break;
   case CLOSENESS:
     igraph_closeness(&wsd_graph, &wsd_centralities, igraph_vss_all(), IGRAPH_ALL, &wsd_weights);

@@ -76,7 +76,7 @@ namespace mico {
 	    delete states[i];
 	  }
 	}
-
+	
 	pthread_mutex_destroy(&wsd_mutex);
 	pthread_mutex_destroy(&tsk_mutex);
 

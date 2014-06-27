@@ -2,7 +2,8 @@ import disambiguation_client as wsd
 
 req = wsd.DisambiguationRequest()
 req.maxdist = 3
-#req.algorithm = wsd.DisambiguationRequest.EIGENVECTOR
+#req.relatedness = wsd.DisambiguationRequest.SHORTEST_PATH
+req.centrality = wsd.DisambiguationRequest.PAGERANK
 
 
 e1 = req.entities.add()
