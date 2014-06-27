@@ -83,7 +83,8 @@ subdir = create
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_compile_flag.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -92,7 +93,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_wsd_create_OBJECTS = parse_graph.$(OBJEXT) weights_combi.$(OBJEXT) \
-	wsd-create.$(OBJEXT)
+	clustering_metis.$(OBJEXT) wsd-create.$(OBJEXT)
 wsd_create_OBJECTS = $(am_wsd_create_OBJECTS)
 wsd_create_DEPENDENCIES = ../graph/libgraph.a \
 	../threading/libthreading.a
@@ -296,8 +297,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # program for creating a (binary) graph representation
-wsd_create_SOURCES = parse_graph.cc weights_combi.cc wsd-create.cc
-wsd_create_LDADD = @rdflibs@ ../graph/libgraph.a ../threading/libthreading.a
+wsd_create_SOURCES = parse_graph.cc weights_combi.cc clustering_metis.cc wsd-create.cc
+wsd_create_LDADD = @rdflibs@ @metislibs@ ../graph/libgraph.a ../threading/libthreading.a
 all: all-am
 
 .SUFFIXES:
@@ -392,6 +393,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clustering_metis.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_graph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weights_combi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsd-create.Po@am__quote@

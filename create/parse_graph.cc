@@ -138,6 +138,11 @@ namespace mico {
 	    // add edge weights and clusters
 	    graph.weights.insert(graph.weights.end(), igraph_ecount(graph.graph) - graph.weights.size(), DBL_MAX);
 
+	    graph.clusters.reserve(igraph_ecount(graph.graph));
+	    for(int i=0; i<igraph_ecount(graph.graph) - graph.clusters.size(); i++) {
+	      graph.clusters.push_back(new int[graph.num_clusters]);
+	    }
+
 	    graph.unlock_graph();
 
 	    igraph_vector_clear(edges);

@@ -26,11 +26,21 @@
 #include "../threading/thread.h"
 #include "parse_graph.h"
 #include "weights_combi.h"
+#include "clustering_metis.h"
+
+#ifdef TIMING
+#include <boost/timer/timer.hpp>
+
+using boost::timer::cpu_timer;
+using boost::timer::cpu_times;
+using boost::timer::nanosecond_type;
+#endif
 
 #define MODE_PRINT   1
 #define MODE_DUMP    2
 #define MODE_RESTORE 4
 #define MODE_WEIGHTS 8
+#define MODE_CLUSTERS 16
 
 
 // internal representation of an RDF file
@@ -46,9 +56,20 @@ struct rdffile {
 using namespace mico::graph;
 using namespace mico::graph::rdf;
 using namespace mico::graph::weights;
+using namespace mico::graph::clustering;
 using namespace mico::threading;
 
-static rgraph_weights_combi graph;
+
+
+/**
+ * Merged class for computing weights and clusters
+ */
+class rgraph_cw : public rgraph_weights_combi, public rgraph_clustering_metis {
+  
+};
+
+
+static rgraph_cw graph;
 
 
 /**
@@ -67,7 +88,6 @@ public:
   void run() {
     unsigned char *result;
     unsigned int len;
-    clock_t start, end;
     int fd;
 
     struct stat buf;
@@ -75,7 +95,12 @@ public:
     sem_wait(thread_s);
     std::cout << "parsing RDF file " << filename << " ... \n";
 
+#ifdef TIMING
+    cpu_timer timer;
+#else
+    clock_t start, end;
     start = clock();
+#endif
 
     // mmap file into memory
     fd = open(filename,O_RDONLY);
@@ -96,9 +121,13 @@ public:
 
     munmap(result,len);
     close(fd);
-    end = clock();
 
+#ifdef TIMING
+    std::cout << "RDF file " << filename << " done (" << timer.format()  << " )!\n";
+#else
+    end = clock();
     std::cout << "RDF file " << filename << " done (" << ((end-start) * 1000 / CLOCKS_PER_SEC)  << " ms)!\n";
+#endif
     sem_post(thread_s);
 
   };
@@ -107,7 +136,7 @@ public:
 
 
 void usage(char *cmd) {
-  printf("Usage: %s [-f format] [-o outprefix] [-i inprefix] [-p] [-w] [-e num] [-v num] [-t threads] rdffiles...\n", cmd);
+  printf("Usage: %s [-f format] [-o outprefix] [-i inprefix] [-p] [-w] [-c] [-e num] [-v num] [-t threads] rdffiles...\n", cmd);
   printf("Options:\n");
   printf(" -f format       the format of the RDF files (turtle,rdfxml,ntriples,trig,json)\n");
   printf(" -o outprefix    prefix of the output files to write the result to (e.g. ~/dumps/dbpedia)\n");
@@ -116,6 +145,7 @@ void usage(char *cmd) {
   printf(" -v vertices     estimated number of graph vertices (for improved efficiency)\n");
   printf(" -e edges        estimated number of graph edges (for improved efficiency)\n");
   printf(" -w              calculate weights before writing result\n");
+  printf(" -c              calculate clusters before writing result (requires weights)\n");
   printf(" -p              print statistics about training when finished\n");
 }
 
@@ -141,7 +171,7 @@ int main(int argc, char** argv) {
 
 
   // read options from command line
-  while( (opt = getopt(argc,argv,"pwf:o:i:e:v:t:")) != -1) {
+  while( (opt = getopt(argc,argv,"pwcf:o:i:e:v:t:")) != -1) {
     switch(opt) {
     case 'o':
       ofile = optarg;
@@ -156,6 +186,9 @@ int main(int argc, char** argv) {
       break;
     case 'w':
       mode |= MODE_WEIGHTS;
+      break;
+    case 'c':
+      mode |= MODE_CLUSTERS;
       break;
     case 'f':
       format = optarg;
@@ -217,6 +250,23 @@ int main(int argc, char** argv) {
     end = clock();
 
     std::cout << "done (" << ((end-start) * 1000 / CLOCKS_PER_SEC) << "ms)!\n";
+
+
+  }
+
+  if(mode & MODE_CLUSTERS) {
+      std::cout << "computing clusters ... ";
+    if(mode & MODE_WEIGHTS) {
+      std::cout.flush();
+      start = clock();
+      graph.compute_clusters();
+      end = clock();
+
+      std::cout << "done (" << ((end-start) * 1000 / CLOCKS_PER_SEC) << "ms)!\n";
+
+    } else {
+      std::cout << "cannot compute clusters without weights\n";
+    }
   }
 
 

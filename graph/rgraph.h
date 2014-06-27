@@ -223,7 +223,7 @@ namespace mico {
 
     };
 
-    typedef char* cluster_t;
+    typedef int* cluster_t;
 
     /**
      * A version of an rgraph where each vertice has an array of hierarchical clusters it is
@@ -271,7 +271,7 @@ namespace mico {
     /**
      * A complete rgraph with weights and clusters.
      */
-    class rgraph_complete : public rgraph_weighted, public rgraph_clustered {
+    class rgraph_complete : public virtual rgraph_weighted, virtual public rgraph_clustered {
 
     protected:
       

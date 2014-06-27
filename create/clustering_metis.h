@@ -1,12 +1,12 @@
 // -*- mode: c++; -*-
-#ifndef HAVE_WEIGHTS_COMBI_H
-#define HAVE_WEIGHTS_COMBI_H 1
+#ifndef HAVE_CLUSTERING_METIS_H
+#define HAVE_CLUSTERING_METIS_H 1
 
 #include "../graph/rgraph.h"
 
 namespace mico {
   namespace graph {
-    namespace weights {
+    namespace clustering {
 
       /**
        * Compute the edge weights according to the combined information content as described in
@@ -18,22 +18,21 @@ namespace mico {
        *   relative selectivity over the graph (this is simply the in-degree
        *   divided by the total number of edges)
        */ 
-      class rgraph_weights_combi : public virtual rgraph_complete {
+      class rgraph_clustering_metis : public virtual rgraph_complete {
 
       public:
 
 	/**
 	 * Initialise an empty relatedness graph, ready for being updated.
 	 */
-	rgraph_weights_combi(int reserve_vertices = 0, int reserve_edges = 0) : rgraph(reserve_vertices, reserve_edges) {};
+	rgraph_clustering_metis(int num_clusters = 8, int reserve_vertices = 0, int reserve_edges = 0) : rgraph_complete(num_clusters, reserve_vertices, reserve_edges) {};
+
 
 
 	/**
-	 * Compute the edge weights.
-	 */ 
-	void compute_weights();
-
-
+	 * Compute hierarchical clusters and assign vertices.
+	 */
+	void compute_clusters();
 
       };
     }

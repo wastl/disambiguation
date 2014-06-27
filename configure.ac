@@ -43,7 +43,14 @@ AC_SUBST(metislibs)
 # c++ headers and libraries
 AC_LANG_PUSH([C++])
 
+# check for C++11
+AX_CHECK_COMPILE_FLAG([-std=c++11], [CXXFLAGS="$CXXFLAGS -std=c++11"],
+  AX_CHECK_COMPILE_FLAG([-std=c++0x], [CXXFLAGS="$CXXFLAGS -std=c++0x"], AC_MSG_ERROR("C++11 not supported by compiler"))
+)
+
 #AC_CHECK_HEADER(boost/heap/fibonacci_heap.hpp, , AC_MSG_ERROR("required boost fibonacci heap missing (install boost library!)"))
+
+#AC_CHECK_HEADER(boost/timer/timer.hpp, AC_DEFINE(TIMING, 1, [timing enabled]))
 
 AC_MSG_NOTICE([checking if Google Protobuf is available])
 AC_CHECK_HEADERS([google/protobuf/stubs/common.h google/protobuf/generated_message_util.h google/protobuf/message.h google/protobuf/repeated_field.h], protobuf_libs="-lprotobuf", AC_MSG_ERROR("protobuf library is missing"))

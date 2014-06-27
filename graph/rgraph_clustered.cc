@@ -25,7 +25,7 @@ namespace mico {
       std::cout << "- dumping cluster data ...\n";
       os.write((char*)&num_clusters, sizeof(int));
       for(int i=0; i<igraph_vcount(graph); i++) {
-	os.write((char*)&clusters[i], num_clusters*sizeof(char));
+	os.write((char*)clusters[i], num_clusters*sizeof(int));
       }
     }
 
@@ -37,10 +37,10 @@ namespace mico {
 
       is.read((char*)&num_clusters, sizeof(int));
 
-      char* c;
+      cluster_t c;
       for(int i=0; i<igraph_vcount(graph); i++) {
-	c = new char[num_clusters];
-	is.read((char*)c, num_clusters*sizeof(char));
+	c = new int[num_clusters];
+	is.read((char*)c, num_clusters*sizeof(int));
 	clusters.push_back(c);
       }
       std::cout << clusters.size() << " entries!\n";
