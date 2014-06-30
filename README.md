@@ -43,19 +43,19 @@ they are typically based on label matching. Taking the sentence above, the disam
   <tr>
     <td>Candidates:</td>
 	<td>
-		<small>http://dbpedia.org/resource/Seattle<br/>
-		http://dbpedia.org/resource/Seattle_metropolitan_area<br/>
-		http://dbpedia.org/resource/Seattle_Sounders_FC</small>
+		dbpedia:Seattle<br/>
+		dbpedia:Seattle_metropolitan_area<br/>
+		dbpedia:Seattle_Sounders_FC
 	</td>
 	<td>
-		http://dbpedia.org/resource/Washington_(state)<br/>
-		http://dbpedia.org/resource/George_Washington<br/>
-		http://dbpedia.org/resource/Washington,_D.C.
+		dbpedia:Washington_(state)<br/>
+		dbpedia:George_Washington<br/>
+		dbpedia:Washington,_D.C.
 	</td>
 	<td>
-		http://dbpedia.org/resource/Portland,_Oregon<br/>
-		http://dbpedia.org/resource/Isle_of_Portland<br/>
-		http://dbpedia.org/resource/Portland,_Maine<br/>
+		dbpedia:Portland,_Oregon<br/>
+		dbpedia:Isle_of_Portland<br/>
+		dbpedia:Portland,_Maine<br/>
 	</td>
 </table>
 
