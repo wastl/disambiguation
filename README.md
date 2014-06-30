@@ -43,19 +43,19 @@ they are typically based on label matching. Taking the sentence above, the disam
   <tr>
     <td>Candidates:</td>
 	<td>
-		http://dbpedia.org/resource/Seattle<br/>
-		http://dbpedia.org/resource/Seattle_metropolitan_area<br/>
-		http://dbpedia.org/resource/Seattle_Sounders_FC
+		`http://dbpedia.org/resource/Seattle`<br/>
+		`http://dbpedia.org/resource/Seattle_metropolitan_area`<br/>
+		`http://dbpedia.org/resource/Seattle_Sounders_FC`
 	</td>
 	<td>
-		http://dbpedia.org/resource/Washington_(state)<br/>
-		http://dbpedia.org/resource/George_Washington<br/>
-		http://dbpedia.org/resource/Washington,_D.C.
+		`http://dbpedia.org/resource/Washington_(state)`<br/>
+		`http://dbpedia.org/resource/George_Washington`<br/>
+		`http://dbpedia.org/resource/Washington,_D.C.`
 	</td>
 	<td>
-		http://dbpedia.org/resource/Portland,_Oregon<br/>
-		http://dbpedia.org/resource/Isle_of_Portland<br/>
-		http://dbpedia.org/resource/Portland,_Maine<br/>
+		`http://dbpedia.org/resource/Portland,_Oregon`<br/>
+		`http://dbpedia.org/resource/Isle_of_Portland`<br/>
+		`http://dbpedia.org/resource/Portland,_Maine`<br/>
 	</td>
 </table>
 
@@ -91,7 +91,7 @@ tool can be called from command line using the following options:
     Usage: wsd-create [-f format] [-o outfile] [-i infile] [-p] [-w] [-e num] [-v num] [-t threads] rdffiles...
     Options:
      -f format       the format of the RDF files (turtle,rdfxml,ntriples,trig,json)
-     -o outfil  e    output file to write the result to (e.g. ~/dumps/dbpedia)
+     -o outfile      output file to write the result to (e.g. ~/dumps/dbpedia)
      -i infile       input file to read initial data from
      -t threads      maximum number of threads to use for parallel training 
      -v vertices     estimated number of graph vertices (for improved efficiency)
