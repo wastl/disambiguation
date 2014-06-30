@@ -17,11 +17,8 @@ using namespace std;
 #include "../graph/rgraph.h"
 #include "../threading/thread.h"
 #include "../communication/connection.h"
-
-
-extern "C" {
 #include "../communication/network.h"
-}
+
 
 
 using namespace mico::threading;
@@ -39,7 +36,7 @@ void usage(char *cmd) {
 }
 
 
-typedef connection<WSDDisambiguationRequest> connection_t;
+typedef Connection<WSDDisambiguationRequest> connection_t;
 
 class worker : public virtual thread {
 
@@ -84,7 +81,7 @@ public:
 int main(int argc, char** argv) {
   int opt;
   char *ifile = NULL;
-  int port = 0, socket;
+  int port = 0;
   long int reserve_edges = 1<<16;
   long int reserve_vertices = 1<<12;
 
@@ -111,14 +108,14 @@ int main(int argc, char** argv) {
 
     // open socket if -p is specified on command line
     if(port) {
-      socket = create_socket(port);
-      int conn_fd;
+      Socket<WSDDisambiguationRequest> socket(port);
+      Connection<WSDDisambiguationRequest>* conn;
 #ifndef PROFILING
-      while( (conn_fd = accept_connection(socket)) >= 0) {
+      while( (conn = socket.accept()) != NULL) {
 #else
-      if( (conn_fd = accept_connection(socket)) >= 0) {
+	if( (conn = socket.accept()) != NULL) {
 #endif
-	worker* w = new worker(new connection<WSDDisambiguationRequest>(conn_fd), graph);
+	worker* w = new worker(conn, graph);
 	w->start();
 #ifdef PROFILING
 	w->join();
@@ -126,7 +123,7 @@ int main(int argc, char** argv) {
       }
 
     } else {
-	worker* w = new worker(new connection<WSDDisambiguationRequest>(), graph);
+	worker* w = new worker(new Connection<WSDDisambiguationRequest>(), graph);
 	w->start();
 	w->join();
     }

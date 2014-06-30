@@ -1,11 +1,10 @@
 #include <ext/stdio_filebuf.h>
 #include <iostream>
+#include <unistd.h> // close
 
+#include "network.h"
 #include "connection.h"
 
-extern "C" {
-#include "network.h"
-}
 
 namespace mico {
   namespace network {
@@ -17,7 +16,9 @@ namespace mico {
     /**
      * Create a connection for sending/receiving requests from standard input/output
      */
-    base_connection::base_connection() : conn(0) {
+    BaseConnection::BaseConnection() : conn(0) {
+      cout << "created new local connection...\n";
+
       in = &cin;
       out = &cout;
     }
@@ -25,7 +26,9 @@ namespace mico {
     /**
      * Create a connection for sending/receiving requests from a file descriptor
      */
-    base_connection::base_connection(int conn) : conn(conn) {
+    BaseConnection::BaseConnection(int conn) : conn(conn) {
+      cout << "created new network connection...\n";
+
       stdio_filebuf<char>* ibuf = new stdio_filebuf<char>(conn, std::ios::in);
       in = new istream(ibuf);
 
@@ -34,7 +37,7 @@ namespace mico {
     }
 
 
-    base_connection::~base_connection() {
+    BaseConnection::~BaseConnection() {
       if(conn) {
 	delete in->rdbuf();
 	delete out->rdbuf();
@@ -42,7 +45,7 @@ namespace mico {
 	delete in;
 	delete out;
 
-	close_connection(conn);
+	close(conn);
       }
 
     }

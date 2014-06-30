@@ -15,7 +15,7 @@
 namespace mico {
   namespace network {
 
-    class base_connection {
+    class BaseConnection {
     protected:
       int conn;
   
@@ -29,32 +29,32 @@ namespace mico {
       /**
        * Create a connection for sending/receiving requests from standard input/output
        */
-      base_connection();
+      BaseConnection();
 
       /**
        * Create a connection for sending/receiving requests from a file descriptor
        */
-      base_connection(int conn);
+      BaseConnection(int conn);
 
-      ~base_connection();
+      ~BaseConnection();
     };
 
 
 
     // R subclass of DisambiguationRequest
-    template<class R> class connection : public base_connection {
+    template<class R> class Connection : public BaseConnection {
 
 
     public:
       /**
        * Create a connection for sending/receiving requests from standard input/output
        */
-      connection() : base_connection() {};
+      Connection() : BaseConnection() {};
 
       /**
        * Create a connection for sending/receiving requests from a file descriptor
        */
-      connection(int conn) : base_connection(conn) {};
+      Connection(int conn) : BaseConnection(conn) {};
 
 
 
@@ -69,13 +69,13 @@ namespace mico {
        * Write out a disambiguation request over the connection. Will first write an integer indicating
        * the size of the message (number of bytes) and then the serialized message itself.
        */
-      connection& operator<<(R &r);
+      Connection& operator<<(R &r);
 
       /**
        * Read in a disambiguation request from the connection. Will first read in an integer indicating
        * the size of the message (number of bytes) and then the serialized message itself.
        */
-      connection& operator>>(R &r);
+      Connection& operator>>(R &r);
     };
 
 
@@ -85,7 +85,7 @@ namespace mico {
 
 
 
-template <class R> mico::network::connection<R>& mico::network::connection<R>::operator<<(R &r) {
+template <class R> mico::network::Connection<R>& mico::network::Connection<R>::operator<<(R &r) {
   uint32_t length = r.ByteSize();
   uint32_t hlength = htonl(length);
   std::cout << "sending a response of "<<length<<" bytes ...\n";
@@ -101,7 +101,7 @@ template <class R> mico::network::connection<R>& mico::network::connection<R>::o
 }
 
 
-template <class R> mico::network::connection<R>& mico::network::connection<R>::operator>>(R &r) {
+template <class R> mico::network::Connection<R>& mico::network::Connection<R>::operator>>(R &r) {
 
   if( !in->eof() ) {
     // read length of next message
@@ -120,7 +120,7 @@ template <class R> mico::network::connection<R>& mico::network::connection<R>::o
 
 
 
-template <class R> R* mico::network::connection<R>::nextRequest() {
+template <class R> R* mico::network::Connection<R>::nextRequest() {
   if( in->eof() ) {
     return NULL;
   }
