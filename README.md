@@ -42,10 +42,10 @@ they are typically based on label matching. Taking the sentence above, the disam
   </tr>
   <tr>
     <td>Candidates:</td>
-	<td style="font-size:75%;">
-		http://dbpedia.org/resource/Seattle<br/>
+	<td>
+		<small>http://dbpedia.org/resource/Seattle<br/>
 		http://dbpedia.org/resource/Seattle_metropolitan_area<br/>
-		http://dbpedia.org/resource/Seattle_Sounders_FC
+		http://dbpedia.org/resource/Seattle_Sounders_FC</small>
 	</td>
 	<td>
 		http://dbpedia.org/resource/Washington_(state)<br/>
