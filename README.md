@@ -84,9 +84,10 @@ disambiguation graph needs to be dynamically computed for each request. This is 
 ## Training (wsd-create) 
 
 The training tool is used to load a collection of RDF files, create an in-memory representation
-of the graph, and compute edge weights for each edge in the graph. The output is written into a set
-of binary files that can be used by the other tools for more efficiently working with the data. The
-tool can be called from command line using the following options:
+of the graph, and compute edge weights for each edge in the graph as well as graph partitions for
+the different relatedness algorithms. The output is written into a set of binary files that can be
+used by the other tools for more efficiently working with the data. The tool can be called from
+command line using the following options:
 
     Usage: wsd-create [-f format] [-o outfile] [-i infile] [-p] [-w] [-e num] [-v num] [-t threads] rdffiles...
     Options:

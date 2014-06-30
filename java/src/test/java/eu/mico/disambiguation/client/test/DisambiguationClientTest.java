@@ -3,6 +3,7 @@ package eu.mico.disambiguation.client.test;
 import eu.mico.disambiguation.client.DisambiguationClient;
 import eu.mico.disambiguation.client.DisambiguationParser;
 import eu.mico.disambiguation.client.DisambiguationProtocol;
+import eu.mico.disambiguation.client.DisambiguationWriter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,12 +71,12 @@ public class DisambiguationClientTest {
 
     @Test
     public void testFile() throws IOException {
-        String filename = "../test/_N3_Reuters-128_93.sug";
+        String filename = "../test/_N3_Reuters-128_91.cleaned.sug";
         File file = new File(filename);
         DisambiguationRequest req = DisambiguationParser.parseAll(file);
 
         DisambiguationRequest resp = client.sendRequest(req);
 
-        System.out.println(resp.toString());
+        DisambiguationWriter.writeDisambiguationOrdered(resp);
     }
 }

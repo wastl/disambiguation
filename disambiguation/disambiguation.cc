@@ -32,6 +32,33 @@ inline int ipow(int base, int exp)
     return result;
 }
 
+/** 
+ * Compute the degree for each node.
+ */
+static void compute_degree(igraph_t* graph, igraph_vector_t* weights, igraph_vector_t* results) {
+  long int i, j, node, eid;
+  double v;
+  for(node=0; node<igraph_vcount(graph); node++) {
+    v = 0.0;
+
+    j=(long int) VECTOR(graph->os)[node+1];
+    for (i=(long int) VECTOR(graph->os)[node]; i<j; i++) {
+      eid =  (long int)VECTOR(graph->oi)[i];
+
+      v +=  igraph_vector_e(weights,eid);
+    }
+
+    j=(long int) VECTOR(graph->is)[node+1];
+    for (i=(long int) VECTOR(graph->is)[node]; i<j; i++) {
+      eid = (long int)VECTOR(graph->ii)[i];
+    
+      v +=  igraph_vector_e(weights,eid);
+    }
+
+    igraph_vector_push_back(results,v);
+
+  }
+}
 
 void WSDDisambiguationRequest::disambiguation(rgraph_complete *graph) {
   using namespace  mico::disambiguation::wsd;
@@ -127,18 +154,33 @@ void WSDDisambiguationRequest::disambiguation(rgraph_complete *graph) {
     igraph_betweenness(&wsd_graph, &wsd_centralities, igraph_vss_all(), 0, &wsd_weights, 0);
     break;
   case EIGENVECTOR:
-  default:
     igraph_eigenvector_centrality(&wsd_graph, &wsd_centralities, NULL, 0, 1, &wsd_weights, &options);
+    break;
+  case DEGREE:
+  default:
+    compute_degree(&wsd_graph, &wsd_weights, &wsd_centralities);
     break;
   }  
 
   std::cout << "writing back disambiguation results...\n";
+
+  // a bit of normalization
+
+  // first normalize to minimum 0.0
+  double min = igraph_vector_min(&wsd_centralities);
+  igraph_vector_add_constant(&wsd_centralities, -min);
+
+  // then scale to maximum -1.0
   double max = igraph_vector_max(&wsd_centralities);
-  igraph_vector_scale(&wsd_centralities, 1.0/max);
+  igraph_vector_scale(&wsd_centralities, -1.0/max);
+
+  // then apply 1.0-value
+  igraph_vector_add_constant(&wsd_centralities, 1.0);
 
   for(i = 0; i<N; i++) {
     for(j = 0; j<N_w(i); j++) {
-      mutable_entities(i)->mutable_candidates(j)->set_confidence(1.0-round(ipow(10,PRECISION)*igraph_vector_e(&wsd_centralities,get_node_id(i,j)))/ipow(10,PRECISION));
+      //      mutable_entities(i)->mutable_candidates(j)->set_confidence(1.0-round(ipow(10,PRECISION)*igraph_vector_e(&wsd_centralities,get_node_id(i,j)))/ipow(10,PRECISION));
+      mutable_entities(i)->mutable_candidates(j)->set_confidence(igraph_vector_e(&wsd_centralities,get_node_id(i,j)));
     }
   }
 

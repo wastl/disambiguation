@@ -37,7 +37,10 @@ public class DisambiguationParser {
     	while((entity = parse(lines)) != null){
             builder.addEntities(entity);
     	}
-		return builder.build();
+
+        //builder.setCentrality(DisambiguationRequest.CentralityAlgorithm.BETWEENNESS);
+        builder.setRelatedness(DisambiguationRequest.RelatednessAlgorithm.SHORTEST_PATH);
+        return builder.build();
 	}
 	/**
 	 * Parses a serialized {@link Entity}
