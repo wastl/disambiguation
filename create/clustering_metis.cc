@@ -66,10 +66,10 @@ namespace mico {
 	  }
 	}
 
-	delete xadj;
-	delete adjncy;
-	delete adjwgt;
-	delete parts;
+	delete[] xadj;
+	delete[] adjncy;
+	delete[] adjwgt;
+	delete[] parts;
       }
     }
   }

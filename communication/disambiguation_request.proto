@@ -2,16 +2,39 @@ option java_package = "eu.mico.disambiguation.client";
 option java_outer_classname = "DisambiguationProtocol";
 
 message Candidate {
+  // URI identifying this candidate in the knowledge graph
   required string uri = 1;
+
+  // confidence of this suggestion; will be overridden by disambiguation
   optional double confidence = 2;
 }
 
+/**
+ * Representation of a single entity. Consists of the text annotation this entity represents and a
+ * list of candidate suggestions for this annotation. Optionally, a gold standard (the correct
+ * candidate) can also be configured.
+ */
 message Entity {
+  // text describing this entity (informational)
   required string text = 1;
+
+  // list of candidates suggested for this entity
   repeated Candidate candidates = 2;
+
+  // gold standard to compare with (informational)
+  optional Candidate gold = 3;
 }
 
+/**
+ * A disambiguation request is composed of a list of entities, each with candidates for
+ * disambiguation. Optionally, it is also possible to configure the algorithms to use and some
+ * algorithm parameters (currently only maximum distance in disambiguation graph)
+ */
 message DisambiguationRequest {
+  /**
+   * The algorithm used for computing centrality in the disambiguation graph. EIGENVECTOR gives the
+   * best results and is therefore set as default.
+   */
   enum CentralityAlgorithm {
     EIGENVECTOR = 1;
     BETWEENNESS = 2;
@@ -19,11 +42,19 @@ message DisambiguationRequest {
     PAGERANK    = 4;
   }
 
+  /**
+   * The algorithm used for computing the strength of relatedness between two concepts in the
+   * knowledge graph. SHORTEST_PATH gives best results but is very slow for big graphs. PARTITION
+   * gives sufficient results and is very fast, therefore the default option.
+   */
   enum RelatednessAlgorithm {
-    SHORTEST_PATH = 1;
-    MAXIMUM_FLOW  = 2;
-    PARTITION     = 3;
-    DFS           = 4;
+    SHORTEST_PATH = 1;  // compute relatedness based on shortest path between two concepts,
+			// complexity O(|V| + |E|log|E|)
+    MAXIMUM_FLOW  = 2;  // compute relatedness based on maximum flow between two concepts,
+			// complexity O(|V|^3)
+    PARTITION     = 3;  // compute relatedness based on common graph partitions, complexity O(1) 
+    DFS           = 4;  // compute relatedness based on depth-first search up to maximum distance;
+			// complexity more or less like SHORTEST_PATH but with upper limit on |V|
   }
 
 

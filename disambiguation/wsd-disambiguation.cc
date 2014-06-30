@@ -19,7 +19,9 @@ using namespace std;
 #include "../communication/connection.h"
 #include "../communication/network.h"
 
-
+#ifdef HAVE_TIMER_H
+#include <boost/timer/timer.hpp>
+#endif
 
 using namespace mico::threading;
 using namespace mico::network;
@@ -51,16 +53,21 @@ public:
   void run() {
     WSDDisambiguationRequest* req = NULL;
 
+
+
     // read requests until finished
     try {
       while( (req = connection->nextRequest()) != NULL) {
-	std::cout << "received new request\n";
-	std::cout << req->DebugString();
-	req->disambiguation(&graph);
+	std::cout << "WORKER: received new request\n";
 
-	// std::cout << "response:\n";
-	// std::cout << req->DebugString();
-    
+#ifdef HAVE_TIMER_H
+	boost::timer::auto_cpu_timer* timer = new boost::timer::auto_cpu_timer("WORKER: %w wall, %u user + %s system = %t (%p% CPU)\n");
+#endif
+	req->disambiguation(&graph);
+#ifdef HAVE_TIMER_H
+	delete timer;
+#endif
+
 	*connection << *req;
 	delete req;
 	req = NULL;

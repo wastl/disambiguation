@@ -162,6 +162,7 @@ int main(int argc, char** argv) {
   clock_t start, end;
   int reserve_edges = 1<<16;
   int reserve_vertices = 1<<12;
+  int num_clusters = 8;
 
   int num_threads = NUM_THREADS;
 
@@ -171,7 +172,7 @@ int main(int argc, char** argv) {
 
 
   // read options from command line
-  while( (opt = getopt(argc,argv,"pwcf:o:i:e:v:t:")) != -1) {
+  while( (opt = getopt(argc,argv,"pwc:f:o:i:e:v:t:")) != -1) {
     switch(opt) {
     case 'o':
       ofile = optarg;
@@ -189,6 +190,7 @@ int main(int argc, char** argv) {
       break;
     case 'c':
       mode |= MODE_CLUSTERS;
+      num_clusters = atoi(optarg);
       break;
     case 'f':
       format = optarg;
@@ -219,7 +221,7 @@ int main(int argc, char** argv) {
   // init empty graph
   graph.reserve_vertices(reserve_vertices);
   graph.reserve_edges(reserve_edges);
-
+  graph.num_clusters = num_clusters;
   
 
   // 1. restore existing dump in case -i is given

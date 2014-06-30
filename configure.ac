@@ -50,7 +50,10 @@ AX_CHECK_COMPILE_FLAG([-std=c++11], [CXXFLAGS="$CXXFLAGS -std=c++11"],
 
 #AC_CHECK_HEADER(boost/heap/fibonacci_heap.hpp, , AC_MSG_ERROR("required boost fibonacci heap missing (install boost library!)"))
 
-#AC_CHECK_HEADER(boost/timer/timer.hpp, AC_DEFINE(TIMING, 1, [timing enabled]))
+AC_CHECK_HEADER(boost/timer/timer.hpp, [timer_libs="-lboost_timer -lboost_system" AC_DEFINE(HAVE_TIMER_H, 1, [timing enabled])])
+#AX_CXX_CHECK_LIB(boost_timer, [boost::timer::auto_cpu_timer],boost_libs="$boost_libs -lboost_timer", timing_enabled="no")
+#AX_CXX_CHECK_LIB(boost_system, [boost::system::system_category],boost_libs="$boost_libs -lboost_system", timing_enabled="no")
+AC_SUBST(timer_libs)
 
 AC_MSG_NOTICE([checking if Google Protobuf is available])
 AC_CHECK_HEADERS([google/protobuf/stubs/common.h google/protobuf/generated_message_util.h google/protobuf/message.h google/protobuf/repeated_field.h], protobuf_libs="-lprotobuf", AC_MSG_ERROR("protobuf library is missing"))
